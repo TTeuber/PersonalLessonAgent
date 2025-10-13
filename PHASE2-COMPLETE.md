@@ -279,7 +279,7 @@ Make sure you have:
 ## API Usage Notes
 
 The app uses OpenRouter API with Claude models:
-- **Default Model**: `anthropic/claude-sonnet-4-20250514`
+- **Default Model**: `anthropic/claude-sonnet-4.5`
 - **Interview Agent**: Sonnet 4 (balanced intelligence/speed)
 - **Course Designer**: Sonnet 4 (structured generation)
 

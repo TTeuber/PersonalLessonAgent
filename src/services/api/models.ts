@@ -18,7 +18,7 @@ export interface ModelConfig {
 export const MODELS = {
   // Claude Sonnet 4 - Best balance of intelligence and speed
   CLAUDE_SONNET_4: {
-    id: 'anthropic/claude-sonnet-4-20250514',
+    id: 'anthropic/claude-sonnet-4.5',
     name: 'Claude Sonnet 4',
     provider: 'Anthropic',
     contextWindow: 200000,
@@ -28,7 +28,7 @@ export const MODELS = {
 
   // Claude Opus - Highest intelligence (if needed for complex tasks)
   CLAUDE_OPUS_4: {
-    id: 'anthropic/claude-opus-4-20250514',
+    id: 'anthropic/claude-opus-4.5',
     name: 'Claude Opus 4',
     provider: 'Anthropic',
     contextWindow: 200000,
@@ -37,9 +37,9 @@ export const MODELS = {
   },
 
   // Claude Haiku - Faster, cheaper (for simple tasks)
-  CLAUDE_HAIKU_4: {
-    id: 'anthropic/claude-haiku-4-20250514',
-    name: 'Claude Haiku 4',
+  CLAUDE_HAIKU_3_5: {
+    id: 'anthropic/claude-3.5-haiku',
+    name: 'Claude Haiku 3.5',
     provider: 'Anthropic',
     contextWindow: 200000,
     maxOutputTokens: 8192,
@@ -60,7 +60,7 @@ export const MODEL_BY_USE_CASE = {
   courseDesign: MODELS.CLAUDE_SONNET_4.id,
   contentGeneration: MODELS.CLAUDE_SONNET_4.id,
   tutoring: MODELS.CLAUDE_SONNET_4.id,
-  quickChat: MODELS.CLAUDE_HAIKU_4.id,
+  quickChat: MODELS.CLAUDE_HAIKU_3_5.id,
 } as const;
 
 /**

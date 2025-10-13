@@ -333,7 +333,7 @@ npm run electron:build
 
 ### Environment Ready
 - OpenRouter API key configured in `.env`
-- Model: `anthropic/claude-sonnet-4-20250514`
+- Model: `anthropic/claude-sonnet-4.5`
 - Context system ready for AI integration
 
 ---
@@ -443,7 +443,7 @@ npm run electron:build
 
 ### API
 - OpenRouter: https://openrouter.ai/
-- Model: `anthropic/claude-sonnet-4-20250514`
+- Model: `anthropic/claude-sonnet-4.5`
 - API Key: Set in `.env` as `VITE_OPENROUTER_API_KEY`
 
 ---

@@ -193,7 +193,7 @@ const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 
 // Default model - can be changed per agent
-const DEFAULT_MODEL = 'anthropic/claude-sonnet-4-20250514';
+const DEFAULT_MODEL = 'anthropic/claude-sonnet-4.5';
 
 interface Message {
   role: 'user' | 'assistant';

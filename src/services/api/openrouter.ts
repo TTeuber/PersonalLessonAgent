@@ -62,7 +62,7 @@ export async function chatCompletion(
   }
 
   const requestBody: Record<string, unknown> = {
-    model: model || 'anthropic/claude-sonnet-4-20250514',
+    model: model || 'anthropic/claude-sonnet-4.5',
     messages: messages.map(msg => ({
       role: msg.role,
       content: msg.content
@@ -147,7 +147,7 @@ export async function chatCompletion(
     return {
       content,
       stop_reason: stopReason,
-      model: data.model || model || 'anthropic/claude-sonnet-4-20250514',
+      model: data.model || model || 'anthropic/claude-sonnet-4.5',
       usage: data.usage ? {
         input_tokens: data.usage.prompt_tokens || 0,
         output_tokens: data.usage.completion_tokens || 0,
