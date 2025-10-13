@@ -6,11 +6,15 @@ import type {
   ModuleContext,
   HierarchicalContext,
 } from '../../types/context';
+import type { Module } from '../../types/module';
+import type { Course } from '../../types/course';
 import {
   getUserContextPath,
   getSubjectContextPath,
   getCourseContextPath,
   getModuleContextPath,
+  getCoursePath,
+  getCourseModulesPath,
 } from './DataPaths';
 
 /**
@@ -172,5 +176,106 @@ export class ContextManager {
       console.error('Error loading subjects:', error);
       return [];
     }
+  }
+
+  /**
+   * Load all courses for a subject (by listing directories in subject folder)
+   */
+  async loadAllCourses(subjectId: string): Promise<Course[]> {
+    try {
+      const subjectPath = getCoursePath(subjectId, '').replace(/\/$/, ''); // Remove trailing slash
+      const entries = await this.fs.listDirectory(subjectPath);
+      const courses: Course[] = [];
+
+      for (const entry of entries) {
+        if (entry.isDirectory && !entry.name.startsWith('.')) {
+          const contextPath = getCourseContextPath(subjectId, entry.name);
+          if (await this.fs.exists(contextPath)) {
+            try {
+              const courseContext = await this.fs.readJSON<CourseContext>(contextPath);
+
+              // Count modules
+              const modulesPath = getCourseModulesPath(subjectId, entry.name);
+              let moduleCount = 0;
+              let completedCount = 0;
+
+              if (await this.fs.exists(modulesPath)) {
+                try {
+                  const modules = await this.fs.readJSON<Module[]>(modulesPath);
+                  moduleCount = modules.length;
+                  completedCount = modules.filter(m => m.completed).length;
+                } catch (error) {
+                  console.error(`Error loading modules for course ${entry.name}:`, error);
+                }
+              }
+
+              courses.push({
+                courseId: courseContext.courseId,
+                courseName: courseContext.courseName,
+                subjectId,
+                goal: courseContext.goal || '',
+                createdAt: courseContext.createdAt || new Date().toISOString(),
+                moduleCount,
+                completedCount,
+              });
+            } catch (error) {
+              console.error(`Error loading course ${entry.name}:`, error);
+            }
+          }
+        }
+      }
+
+      return courses;
+    } catch (error) {
+      console.error(`Error loading courses for subject ${subjectId}:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Save course context
+   */
+  async saveCourseContext(
+    subjectId: string,
+    courseId: string,
+    courseContext: CourseContext
+  ): Promise<void> {
+    // Ensure course directory exists
+    const coursePath = getCoursePath(subjectId, courseId);
+    await this.fs.createDirectory(coursePath);
+
+    // Save course context
+    await this.saveContext('course', courseContext, subjectId, courseId);
+  }
+
+  /**
+   * Save course modules list
+   */
+  async saveCourseModules(
+    subjectId: string,
+    courseId: string,
+    modules: Module[]
+  ): Promise<void> {
+    const modulesPath = getCourseModulesPath(subjectId, courseId);
+    await this.fs.writeJSON(modulesPath, modules);
+  }
+
+  /**
+   * Load course modules
+   */
+  async loadCourseModules(
+    subjectId: string,
+    courseId: string
+  ): Promise<Module[]> {
+    const modulesPath = getCourseModulesPath(subjectId, courseId);
+    if (await this.fs.exists(modulesPath)) {
+      try {
+        return await this.fs.readJSON<Module[]>(modulesPath);
+      } catch (error) {
+        console.error('Error loading course modules:', error);
+        return [];
+      }
+    }
+    return [];
   }
 }

@@ -6,29 +6,35 @@ interface HeaderProps {
   title: string;
   showBackButton?: boolean;
   backPath?: string;
+  onBack?: () => void;
   actions?: React.ReactNode;
 }
 
 /**
  * Reusable header component with optional back button and actions
  */
-export function Header({ title, showBackButton = false, backPath, actions }: HeaderProps) {
+export function Header({ title, showBackButton = false, backPath, onBack, actions }: HeaderProps) {
   const navigate = useNavigate();
 
   const handleBack = () => {
-    if (backPath) {
+    if (onBack) {
+      onBack();
+    } else if (backPath) {
       navigate(backPath);
     } else {
       navigate(-1);
     }
   };
 
+  // Show back button if explicitly requested or if onBack is provided
+  const shouldShowBackButton = showBackButton || !!onBack;
+
   return (
     <header className="bg-white shadow">
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            {showBackButton && (
+            {shouldShowBackButton && (
               <button
                 onClick={handleBack}
                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"

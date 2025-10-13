@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { UserProfileSetup } from './components/Setup/UserProfileSetup';
 import { Dashboard } from './components/Dashboard/Dashboard';
+import { SubjectView } from './components/SubjectView/SubjectView';
 import { useUserContext } from './hooks/useUserContext';
 
 function App() {
@@ -34,9 +35,9 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Dashboard userContext={userContext} />} />
-        {/* Placeholder routes for Phase 2+ */}
-        <Route path="/subject/:subjectId" element={<div>Subject View (Coming in Phase 2)</div>} />
-        <Route path="/subject/:subjectId/course/:courseId" element={<div>Course View (Coming in Phase 2)</div>} />
+        <Route path="/subject/:subjectId" element={<SubjectView />} />
+        {/* Placeholder routes for Phase 3+ */}
+        <Route path="/subject/:subjectId/course/:courseId" element={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="text-center"><p className="text-xl text-gray-600">Course View coming in Phase 4</p></div></div>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

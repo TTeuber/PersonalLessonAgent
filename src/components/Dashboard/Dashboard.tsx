@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Book } from 'lucide-react';
 import { Header } from '../Shared/Header';
 import { Button } from '../Shared/Button';
@@ -15,6 +16,7 @@ interface DashboardProps {
  * Main dashboard showing all subjects
  */
 export function Dashboard({ userContext }: DashboardProps) {
+  const navigate = useNavigate();
   const [subjects, setSubjects] = useState<SubjectContext[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewSubjectDialog, setShowNewSubjectDialog] = useState(false);
@@ -82,10 +84,7 @@ export function Dashboard({ userContext }: DashboardProps) {
               <div
                 key={subject.subjectId}
                 className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6 cursor-pointer"
-                onClick={() => {
-                  // TODO: Navigate to subject view
-                  console.log('Navigate to subject:', subject.subjectId);
-                }}
+                onClick={() => navigate(`/subject/${subject.subjectId}`)}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="p-3 bg-blue-100 rounded-lg">
