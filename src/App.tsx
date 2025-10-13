@@ -3,6 +3,7 @@ import { UserProfileSetup } from './components/Setup/UserProfileSetup';
 import { Dashboard } from './components/Dashboard/Dashboard';
 import { SubjectView } from './components/SubjectView/SubjectView';
 import { CourseView } from './components/CourseView/CourseView';
+import { ModuleView } from './components/ModuleView/ModuleView';
 import { useUserContext } from './hooks/useUserContext';
 
 function App() {
@@ -38,8 +39,7 @@ function App() {
         <Route path="/" element={<Dashboard userContext={userContext} />} />
         <Route path="/subject/:subjectId" element={<SubjectView />} />
         <Route path="/subject/:subjectId/course/:courseId" element={<CourseView />} />
-        {/* Placeholder route for Phase 4 (Module View) */}
-        <Route path="/subject/:subjectId/course/:courseId/module/:moduleId" element={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="text-center"><p className="text-xl text-gray-600">Module View coming in Phase 4</p></div></div>} />
+        <Route path="/subject/:subjectId/course/:courseId/module/:moduleId" element={<ModuleView />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

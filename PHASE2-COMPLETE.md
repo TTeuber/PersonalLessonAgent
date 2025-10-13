@@ -19,7 +19,7 @@ Phase 2 successfully implements AI-powered subject and course creation with conv
 - ✅ **Model Configurations** (`src/services/api/models.ts`)
   - Claude Sonnet 4 (default)
   - Claude Opus 4 (high intelligence)
-  - Claude Haiku 4 (fast & efficient)
+  - Claude Haiku 3.5 (fast & efficient)
   - Use case-based model selection
 
 ### 2. Type System
