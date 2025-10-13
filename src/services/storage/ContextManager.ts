@@ -278,4 +278,54 @@ export class ContextManager {
     }
     return [];
   }
+
+  /**
+   * Update a specific module's metadata in the modules list
+   */
+  async updateModuleMetadata(
+    subjectId: string,
+    courseId: string,
+    moduleId: string,
+    updates: Partial<Module>
+  ): Promise<void> {
+    const modules = await this.loadCourseModules(subjectId, courseId);
+    const moduleIndex = modules.findIndex(m => m.id === moduleId);
+
+    if (moduleIndex === -1) {
+      throw new Error(`Module ${moduleId} not found in course ${courseId}`);
+    }
+
+    // Update the module - cast to Module to satisfy TypeScript
+    modules[moduleIndex] = {
+      ...modules[moduleIndex],
+      ...updates,
+    } as Module;
+
+    // Save back to file
+    await this.saveCourseModules(subjectId, courseId, modules);
+  }
+
+  /**
+   * Save module context
+   */
+  async saveModuleContext(
+    subjectId: string,
+    courseId: string,
+    moduleId: string,
+    moduleContext: ModuleContext
+  ): Promise<void> {
+    await this.saveContext('module', moduleContext, subjectId, courseId, moduleId);
+  }
+
+  /**
+   * Get a specific module by ID
+   */
+  async getModule(
+    subjectId: string,
+    courseId: string,
+    moduleId: string
+  ): Promise<Module | null> {
+    const modules = await this.loadCourseModules(subjectId, courseId);
+    return modules.find(m => m.id === moduleId) || null;
+  }
 }
