@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron';
+const { contextBridge, ipcRenderer } = require('electron');
 
 /**
  * Preload script that exposes safe IPC methods to the renderer process
@@ -37,3 +37,5 @@ const electronAPI: ElectronAPI = {
 
 // Expose the API to the renderer process
 contextBridge.exposeInMainWorld('electron', electronAPI);
+
+export {};

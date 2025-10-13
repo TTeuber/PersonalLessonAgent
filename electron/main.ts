@@ -1,10 +1,6 @@
-import { app, BrowserWindow } from 'electron';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { registerAllHandlers } from './ipc/handlers.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = join(__filename, '..');
+const { app, BrowserWindow } = require('electron');
+const { join } = require('path');
+const { registerAllHandlers } = require('./ipc/handlers');
 
 function createWindow() {
     const win = new BrowserWindow({
@@ -42,3 +38,5 @@ app.on('activate', () => {
         createWindow();
     }
 });
+
+export {};

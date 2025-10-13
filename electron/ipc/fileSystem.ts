@@ -1,7 +1,7 @@
-import { ipcMain, app } from 'electron';
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import * as os from 'os';
+const { ipcMain, app } = require('electron');
+const fs = require('fs/promises');
+const path = require('path');
+const os = require('os');
 
 /**
  * Get the data directory path based on environment
@@ -31,7 +31,7 @@ async function ensureDataDirectory(): Promise<void> {
 /**
  * Register all file system IPC handlers
  */
-export function registerFileSystemHandlers(): void {
+function registerFileSystemHandlers(): void {
   // Ensure data directory exists on startup
   ensureDataDirectory().catch(console.error);
 
@@ -41,7 +41,7 @@ export function registerFileSystemHandlers(): void {
   });
 
   // Read file
-  ipcMain.handle('fs:readFile', async (_event, filePath: string) => {
+  ipcMain.handle('fs:readFile', async (_event: any, filePath: string) => {
     try {
       const fullPath = path.join(getDataDirectory(), filePath);
       const content = await fs.readFile(fullPath, 'utf-8');
@@ -53,7 +53,7 @@ export function registerFileSystemHandlers(): void {
   });
 
   // Write file
-  ipcMain.handle('fs:writeFile', async (_event, filePath: string, content: string) => {
+  ipcMain.handle('fs:writeFile', async (_event: any, filePath: string, content: string) => {
     try {
       const fullPath = path.join(getDataDirectory(), filePath);
       // Ensure parent directory exists
@@ -67,7 +67,7 @@ export function registerFileSystemHandlers(): void {
   });
 
   // Create directory
-  ipcMain.handle('fs:createDirectory', async (_event, dirPath: string) => {
+  ipcMain.handle('fs:createDirectory', async (_event: any, dirPath: string) => {
     try {
       const fullPath = path.join(getDataDirectory(), dirPath);
       await fs.mkdir(fullPath, { recursive: true });
@@ -79,11 +79,11 @@ export function registerFileSystemHandlers(): void {
   });
 
   // List directory
-  ipcMain.handle('fs:listDirectory', async (_event, dirPath: string) => {
+  ipcMain.handle('fs:listDirectory', async (_event: any, dirPath: string) => {
     try {
       const fullPath = path.join(getDataDirectory(), dirPath);
       const entries = await fs.readdir(fullPath, { withFileTypes: true });
-      return entries.map((e) => ({
+      return entries.map((e: any) => ({
         name: e.name,
         isDirectory: e.isDirectory(),
       }));
@@ -94,7 +94,7 @@ export function registerFileSystemHandlers(): void {
   });
 
   // Check if file/directory exists
-  ipcMain.handle('fs:exists', async (_event, filePath: string) => {
+  ipcMain.handle('fs:exists', async (_event: any, filePath: string) => {
     try {
       const fullPath = path.join(getDataDirectory(), filePath);
       await fs.access(fullPath);
@@ -104,3 +104,7 @@ export function registerFileSystemHandlers(): void {
     }
   });
 }
+
+module.exports = { registerFileSystemHandlers };
+
+export {};
