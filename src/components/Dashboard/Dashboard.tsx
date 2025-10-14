@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Book } from 'lucide-react';
 import { Header } from '../Shared/Header';
 import { Button } from '../Shared/Button';
+import { ThemeToggle } from '../Shared/ThemeToggle';
 import { InterviewFormFlow } from '../CourseCreation/InterviewFormFlow';
 import { GenerationProgress } from '../CourseCreation/GenerationProgress';
 import { ContextManager } from '../../services/storage/ContextManager';
@@ -118,10 +119,10 @@ export function Dashboard({ userContext }: DashboardProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
         </div>
       </div>
     );
@@ -131,7 +132,7 @@ export function Dashboard({ userContext }: DashboardProps) {
   if (creationStep !== 'idle') {
     if (creationStep === 'interview' && interviewAgent && interviewContext) {
       return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
           <Header
             title="Create New Subject"
             onBack={() => setCreationStep('idle')}
@@ -145,6 +146,7 @@ export function Dashboard({ userContext }: DashboardProps) {
               context={interviewContext}
               onComplete={handleInterviewComplete}
               completionMessage="Thank you for providing all the information. Creating your subject..."
+              interviewType="subject"
             />
           </div>
         </div>
@@ -153,7 +155,7 @@ export function Dashboard({ userContext }: DashboardProps) {
 
     if (creationStep === 'saving') {
       return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
           <GenerationProgress step="saving" message="Creating your subject..." />
         </div>
       );

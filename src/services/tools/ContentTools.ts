@@ -78,7 +78,7 @@ export async function generateModuleContent(
     await agent.run(prompt, fullContext);
 
     // Update module metadata with content paths
-    const updates = await getModuleUpdates(module);
+    const updates = await getModuleUpdates(subjectId, courseId, module);
     await contextManager.updateModuleMetadata(subjectId, courseId, module.id, updates);
 
     // Save module context
@@ -178,26 +178,26 @@ Please generate 5-8 questions that test the learner's comprehension of the key c
 /**
  * Get module updates based on module type
  */
-async function getModuleUpdates(module: Module): Promise<Partial<Module>> {
+async function getModuleUpdates(subjectId: string, courseId: string, module: Module): Promise<Partial<Module>> {
   switch (module.type) {
     case 'lesson': {
       const lessonUpdates: Partial<Lesson> = {
-        contentPath: `${module.id}/content.md`,
+        contentPath: `${subjectId}/${courseId}/${module.id}/content.md`,
       };
       return lessonUpdates;
     }
 
     case 'exercise': {
       const exerciseUpdates: Partial<Exercise> = {
-        descriptionPath: `${module.id}/description.md`,
-        projectPath: `${module.id}/project`,
+        descriptionPath: `${subjectId}/${courseId}/${module.id}/description.md`,
+        projectPath: `${subjectId}/${courseId}/${module.id}/project`,
       };
       return exerciseUpdates;
     }
 
     case 'quiz': {
       const quizUpdates: Partial<Quiz> = {
-        questionsPath: `${module.id}/questions.json`,
+        questionsPath: `${subjectId}/${courseId}/${module.id}/questions.json`,
       };
       return quizUpdates;
     }

@@ -14,20 +14,19 @@ import type { CourseOutline } from '../../types/agent';
 export class CourseDesignerAgent extends Agent {
   private courseOutline: CourseOutline | null = null;
 
-  protected getSystemPrompt(context: HierarchicalContext): string {
-    return `You are an expert instructional designer creating a personalized course curriculum.
+  protected getSystemPrompt(_context: HierarchicalContext): string {
+    return `You are an expert instructional designer creating personalized course curricula.
 
-Full Context: ${JSON.stringify(context, null, 2)}
+When given interview data about a learner and their course goals, your task is to design a structured course outline that is:
 
-Your task is to design a structured course outline that is:
 1. **Tailored to the learner:**
-   - Consider their background knowledge: ${context.user?.learningStylePreference || 'not specified'}
-   - Respect their learning style preference: ${context.user?.learningStylePreference || 'not specified'}
-   - Use their available tools/resources: ${JSON.stringify(context.subject || {})}
-   - Align with their specific goals: ${JSON.stringify(context.course || {})}
+   - Consider their background knowledge and goals
+   - Respect their learning style preference (hands-on, theory-first, or balanced)
+   - Use their available tools/resources
+   - Align with their specific course goals
 
 2. **Well-structured:**
-   - Create 5-10 modules total
+   - Create at least 5 modules (no upper limit - create as many as needed)
    - Start with foundational concepts
    - Build progressively to advanced topics
    - End with a practical application or project
@@ -116,8 +115,8 @@ When you're ready, use the create_course_outline tool to submit your design.`;
         throw new Error('Modules must be a non-empty array');
       }
 
-      if (modules.length < 5 || modules.length > 10) {
-        throw new Error('Course must have between 5 and 10 modules');
+      if (modules.length < 5) {
+        throw new Error('Course must have at least 5 modules');
       }
 
       // Validate each module

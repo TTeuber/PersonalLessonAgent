@@ -31,6 +31,7 @@ export type ToolExecutor = (
 export abstract class Agent {
   protected model: string;
   protected maxIterations: number = 10; // Prevent infinite loops
+  protected maxTokens: number = 4096; // Default max tokens per API call
 
   constructor(model?: string) {
     this.model = model || DEFAULT_MODEL;
@@ -86,7 +87,8 @@ export abstract class Agent {
         messages,
         systemPrompt,
         tools.length > 0 ? tools : undefined,
-        this.model
+        this.model,
+        this.maxTokens
       );
 
       // Add assistant response to messages

@@ -147,6 +147,16 @@ export async function chatCompletion(
     requestBody.tools = tools;
   }
 
+  // Log request for debugging
+  console.log('[OpenRouter] Request:', {
+    model: requestBody.model,
+    hasSystem: !!requestBody.system,
+    hasTools: requestBody.tools?.length || 0,
+    toolNames: requestBody.tools?.map((t: any) => t.function.name) || [],
+    messageCount: openAIMessages.length,
+    lastMessage: openAIMessages[openAIMessages.length - 1],
+  });
+
   try {
     const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
       method: 'POST',
@@ -159,16 +169,44 @@ export async function chatCompletion(
       body: JSON.stringify(requestBody),
     });
 
+    console.log('[OpenRouter] Response status:', response.status, response.statusText);
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('[OpenRouter] Error response:', errorData);
       throw new Error(
         `OpenRouter API error: ${response.status} ${response.statusText}. ${
-          errorData.error?.message || ''
+          errorData.error?.message || JSON.stringify(errorData)
         }`
       );
     }
 
-    const data = await response.json();
+    // Get raw response text first for debugging
+    const responseText = await response.text();
+    console.log('[OpenRouter] Raw response length:', responseText.length);
+
+    if (!responseText || responseText.length === 0) {
+      throw new Error('Empty response from OpenRouter API');
+    }
+
+    // Try to parse JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('[OpenRouter] JSON parse error. First 500 chars of response:', responseText.substring(0, 500));
+      throw new Error(`Failed to parse OpenRouter response: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
+    }
+    console.log('[OpenRouter] Response data:', {
+      model: data.model,
+      finishReason: data.choices?.[0]?.finish_reason,
+      hasToolCalls: !!data.choices?.[0]?.message?.tool_calls,
+      toolCalls: data.choices?.[0]?.message?.tool_calls?.map((tc: any) => ({
+        name: tc.function.name,
+        argsLength: tc.function.arguments.length,
+      })) || [],
+      contentLength: data.choices?.[0]?.message?.content?.length || 0,
+    });
 
     // OpenRouter wraps Anthropic's response format
     // Extract the actual content from the response
@@ -191,22 +229,34 @@ export async function chatCompletion(
 
     // Determine stop reason
     let stopReason: ChatCompletionResponse['stop_reason'] = 'end_turn';
-    if (choice.finish_reason === 'tool_calls' || choice.message?.tool_calls) {
+
+    // Check for max_tokens BEFORE trying to parse tool calls
+    if (choice.finish_reason === 'length') {
+      stopReason = 'max_tokens';
+      console.warn('[OpenRouter] Response truncated due to max_tokens limit');
+      // Don't try to parse tool calls if response was truncated
+    } else if (choice.finish_reason === 'tool_calls' || choice.message?.tool_calls) {
       stopReason = 'tool_use';
 
       // Convert OpenRouter tool_calls format to Anthropic format
       if (choice.message?.tool_calls) {
-        content = choice.message.tool_calls.map((tc: any) => ({
-          type: 'tool_use',
-          id: tc.id,
-          name: tc.function.name,
-          input: typeof tc.function.arguments === 'string'
-            ? JSON.parse(tc.function.arguments)
-            : tc.function.arguments,
-        }));
+        content = choice.message.tool_calls.map((tc: any) => {
+          try {
+            return {
+              type: 'tool_use',
+              id: tc.id,
+              name: tc.function.name,
+              input: typeof tc.function.arguments === 'string'
+                ? JSON.parse(tc.function.arguments)
+                : tc.function.arguments,
+            };
+          } catch (parseError) {
+            console.error('[OpenRouter] Failed to parse tool call arguments:', parseError);
+            console.error('[OpenRouter] Tool call data:', tc);
+            throw new Error(`Failed to parse tool call arguments for ${tc.function.name}: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
+          }
+        });
       }
-    } else if (choice.finish_reason === 'length') {
-      stopReason = 'max_tokens';
     } else if (choice.finish_reason === 'stop') {
       stopReason = 'stop_sequence';
     }

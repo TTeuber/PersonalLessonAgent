@@ -38,6 +38,8 @@ export class ContentGeneratorAgent extends Agent {
     this.subjectId = subjectId;
     this.courseId = courseId;
     this.moduleId = moduleId;
+    // Increase max tokens for content generation (lessons can be long)
+    this.maxTokens = 8000;
   }
 
   protected getSystemPrompt(context: Partial<HierarchicalContext>): string {

@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, GraduationCap } from 'lucide-react';
+import { Plus, GraduationCap, AlertCircle } from 'lucide-react';
 import { Header } from '../Shared/Header';
 import { Button } from '../Shared/Button';
 import { CourseCard } from './CourseCard';
@@ -18,9 +18,11 @@ import { InterviewAgent } from '../../services/agents/InterviewAgent';
 import { CourseDesignerAgent } from '../../services/agents/CourseDesignerAgent';
 import { toKebabCase } from '../../services/storage/DataPaths';
 import { COURSE_INITIAL_QUESTIONS } from '../../services/agents/InitialQuestions';
+import { InterviewStorage } from '../../services/storage/InterviewStorage';
 import type { Course } from '../../types/course';
 import type { SubjectContext, CourseContext, HierarchicalContext } from '../../types/context';
 import type { Module } from '../../types/module';
+import type { SavedInterviewState } from '../../services/storage/InterviewStorage';
 
 type CreationStep = 'idle' | 'interview' | 'review' | 'saving';
 
@@ -39,6 +41,8 @@ export function SubjectView() {
   // Interview state
   const [interviewAgent, setInterviewAgent] = useState<InterviewAgent | null>(null);
   const [interviewContext, setInterviewContext] = useState<Partial<HierarchicalContext> | null>(null);
+  const [savedInterviewState, setSavedInterviewState] = useState<SavedInterviewState | null>(null);
+  const [showResumeModal, setShowResumeModal] = useState(false);
 
   // Course design state
   const [courseName, setCourseName] = useState('');
@@ -46,9 +50,59 @@ export function SubjectView() {
 
   const contextManager = new ContextManager(fileSystemService);
 
+  // Helper function to force create course from saved draft
+  const forceCreateFromDraft = async () => {
+    if (!subjectId) {
+      console.error('[ForceCreate] No subjectId available');
+      return;
+    }
+
+    const saved = InterviewStorage.load(subjectId);
+    if (!saved || saved.type !== 'course') {
+      console.error('[ForceCreate] No saved course interview found');
+      alert('No saved course interview found for this subject');
+      return;
+    }
+
+    if (!saved.courseName || !saved.courseContext) {
+      console.error('[ForceCreate] Saved state is missing courseName or courseContext');
+      alert('Saved interview data is incomplete');
+      return;
+    }
+
+    console.log('[ForceCreate] Found saved state:', saved);
+    console.log('[ForceCreate] Creating course:', saved.courseName);
+
+    try {
+      // Close any modal
+      setShowResumeModal(false);
+
+      // Set the course name state so handleApproveCourse can access it
+      setCourseName(saved.courseName);
+
+      // Directly call designCourse with saved data
+      await designCourse(saved.courseName, saved.courseContext);
+    } catch (error) {
+      console.error('[ForceCreate] Error:', error);
+      alert(`Error creating course: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
   useEffect(() => {
     if (subjectId) {
       loadSubjectAndCourses();
+    }
+  }, [subjectId]);
+
+  // Expose forceCreateFromDraft to window for console access
+  useEffect(() => {
+    if (subjectId && typeof window !== 'undefined') {
+      (window as any).forceCreateCourse = forceCreateFromDraft;
+      console.log('[SubjectView] Force create function available: window.forceCreateCourse()');
+
+      return () => {
+        delete (window as any).forceCreateCourse;
+      };
     }
   }, [subjectId]);
 
@@ -64,6 +118,15 @@ export function SubjectView() {
 
       const loadedCourses = await contextManager.loadAllCourses(subjectId);
       setCourses(loadedCourses);
+
+      // Check for saved interview state
+      if (InterviewStorage.has(subjectId)) {
+        const saved = InterviewStorage.load(subjectId);
+        if (saved && saved.type === 'course') {
+          setSavedInterviewState(saved);
+          setShowResumeModal(true);
+        }
+      }
     } catch (error) {
       console.error('Error loading subject and courses:', error);
     } finally {
@@ -72,6 +135,23 @@ export function SubjectView() {
   };
 
   const handleNewCourse = async () => {
+    if (!subjectId) return;
+
+    // Check if there's a saved draft
+    if (InterviewStorage.has(subjectId)) {
+      const saved = InterviewStorage.load(subjectId);
+      if (saved && saved.type === 'course') {
+        setSavedInterviewState(saved);
+        setShowResumeModal(true);
+        return;
+      }
+    }
+
+    // Start new interview
+    await startNewInterview();
+  };
+
+  const startNewInterview = async () => {
     if (!subjectId) return;
 
     try {
@@ -89,6 +169,45 @@ export function SubjectView() {
       alert('Error starting interview. Please try again.');
       setCreationStep('idle');
     }
+  };
+
+  const handleResumeInterview = async () => {
+    if (!subjectId || !savedInterviewState) return;
+
+    try {
+      setShowResumeModal(false);
+      setCreationStep('interview');
+
+      // Load context for the interview
+      const context = await contextManager.loadHierarchicalContext(subjectId);
+      setInterviewContext(context);
+
+      // Create interview agent and restore its state
+      const agent = new InterviewAgent('course');
+
+      // Restore agent state from saved data
+      // The agent will need to reprocess the answers to restore its internal state
+      await agent.processAnswers(savedInterviewState.allAnswers, context);
+
+      setInterviewAgent(agent);
+    } catch (error) {
+      console.error('Error resuming interview:', error);
+      alert('Error resuming interview. Please try again.');
+      setCreationStep('idle');
+      setShowResumeModal(false);
+    }
+  };
+
+  const handleStartFresh = () => {
+    if (!subjectId) return;
+
+    // Clear saved state
+    InterviewStorage.clear(subjectId);
+    setSavedInterviewState(null);
+    setShowResumeModal(false);
+
+    // Start new interview
+    startNewInterview();
   };
 
   const handleInterviewComplete = async () => {
@@ -118,9 +237,55 @@ export function SubjectView() {
 
       console.log('Course context for designer:', context);
 
+      // Build detailed user message with interview data
+      let userMessage = `I have completed an interview with a learner. Here are the interview results:\n\n`;
+
+      userMessage += `## Course Details:\n`;
+      userMessage += `- **Course Name:** ${name}\n`;
+      userMessage += `- **Subject:** ${context.subject?.subjectName || 'Not specified'}\n\n`;
+
+      userMessage += `## Interview Answers:\n`;
+      if (courseContext && typeof courseContext === 'object') {
+        Object.entries(courseContext).forEach(([key, value]) => {
+          if (key !== 'createdAt' && key !== 'courseId') {
+            const formattedKey = key
+              .replace(/([A-Z])/g, ' $1')
+              .replace(/^./, str => str.toUpperCase())
+              .trim();
+            const formattedValue = Array.isArray(value)
+              ? value.join(', ')
+              : typeof value === 'object'
+              ? JSON.stringify(value, null, 2)
+              : String(value);
+            userMessage += `- **${formattedKey}:** ${formattedValue}\n`;
+          }
+        });
+      }
+
+      userMessage += `\n## Learner Profile:\n`;
+      userMessage += `- **Learning Style:** ${context.user?.learningStylePreference || 'Not specified'}\n`;
+      userMessage += `- **Preferred IDE:** ${context.user?.preferredIDE || 'Not specified'}\n`;
+
+      if (context.subject) {
+        userMessage += `\n## Subject Context:\n`;
+        Object.entries(context.subject).forEach(([key, value]) => {
+          if (key !== 'subjectId' && key !== 'subjectName' && key !== 'createdAt') {
+            const formattedKey = key
+              .replace(/([A-Z])/g, ' $1')
+              .replace(/^./, str => str.toUpperCase())
+              .trim();
+            userMessage += `- **${formattedKey}:** ${value}\n`;
+          }
+        });
+      }
+
+      userMessage += `\n**Please design a comprehensive course structure with 5-10 modules based on this interview data.**`;
+
+      console.log('User message for designer:', userMessage);
+
       const designer = new CourseDesignerAgent();
       const response = await designer.run(
-        'Design a course structure based on the interview.',
+        userMessage,
         context as any
       );
 
@@ -148,7 +313,16 @@ export function SubjectView() {
   };
 
   const handleApproveCourse = async () => {
-    if (!subjectId || !courseName || !courseOutline) return;
+    console.log('[ApproveCourse] Starting approval process');
+    console.log('[ApproveCourse] subjectId:', subjectId);
+    console.log('[ApproveCourse] courseName:', courseName);
+    console.log('[ApproveCourse] courseOutline:', courseOutline);
+
+    if (!subjectId || !courseName || !courseOutline) {
+      console.error('[ApproveCourse] Missing required data:', { subjectId, courseName, hasOutline: !!courseOutline });
+      alert('Missing required data to create course. Please try again.');
+      return;
+    }
 
     setCreationStep('saving');
 
@@ -188,11 +362,17 @@ export function SubjectView() {
       // Save modules
       await contextManager.saveCourseModules(subjectId, courseId, modules);
 
+      // Clear saved interview state (course creation succeeded)
+      if (subjectId) {
+        InterviewStorage.clear(subjectId);
+      }
+
       // Reset state and reload
       setCreationStep('idle');
       setInterviewAgent(null);
       setInterviewContext(null);
       setCourseOutline(null);
+      setSavedInterviewState(null);
       await loadSubjectAndCourses();
     } catch (error) {
       console.error('Error saving course:', error);
@@ -225,7 +405,7 @@ export function SubjectView() {
 
   // Show course creation flow
   if (creationStep !== 'idle') {
-    if (creationStep === 'interview' && interviewAgent && interviewContext) {
+    if (creationStep === 'interview' && interviewAgent && interviewContext && subjectId) {
       return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
           <Header
@@ -240,6 +420,9 @@ export function SubjectView() {
               agent={interviewAgent}
               context={interviewContext}
               onComplete={handleInterviewComplete}
+              subjectId={subjectId}
+              interviewType="course"
+              savedState={savedInterviewState}
             />
           </div>
         </div>
@@ -314,6 +497,60 @@ export function SubjectView() {
           </div>
         )}
       </main>
+
+      {/* Resume Interview Modal */}
+      {showResumeModal && savedInterviewState && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="flex-shrink-0">
+                <AlertCircle className="w-6 h-6 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                  Resume Previous Interview?
+                </h3>
+                <p className="text-sm text-gray-600 mb-2">
+                  You have an unfinished course interview from{' '}
+                  {InterviewStorage.getTimeAgo(savedInterviewState.timestamp)}.
+                </p>
+                {savedInterviewState.courseName && savedInterviewState.courseContext ? (
+                  <p className="text-sm text-gray-500">
+                    Course: <strong>{savedInterviewState.courseName}</strong>
+                  </p>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="space-y-2 mt-6">
+              {savedInterviewState.courseName && savedInterviewState.courseContext && (
+                <Button
+                  onClick={forceCreateFromDraft}
+                  className="w-full"
+                >
+                  Create Course Now
+                </Button>
+              )}
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleStartFresh}
+                  variant="secondary"
+                  className="flex-1"
+                >
+                  Start Fresh
+                </Button>
+                <Button
+                  onClick={handleResumeInterview}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Resume Interview
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

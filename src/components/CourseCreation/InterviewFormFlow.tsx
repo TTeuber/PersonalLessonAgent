@@ -4,11 +4,13 @@
  */
 
 import { useState } from 'react';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Save } from 'lucide-react';
 import { InterviewForm } from './InterviewForm';
+import { InterviewStorage } from '../../services/storage/InterviewStorage';
 import type { Question } from '../../services/agents/InitialQuestions';
 import type { InterviewAgent } from '../../services/agents/InterviewAgent';
 import type { HierarchicalContext } from '../../types/context';
+import type { SavedInterviewState } from '../../services/storage/InterviewStorage';
 
 interface InterviewFormFlowProps {
   title: string;
@@ -18,6 +20,9 @@ interface InterviewFormFlowProps {
   context: Partial<HierarchicalContext>;
   onComplete: () => void;
   completionMessage?: string;
+  subjectId?: string;
+  interviewType: 'subject' | 'course';
+  savedState?: SavedInterviewState | null;
 }
 
 type FlowStep = 'initial' | 'followup' | 'complete';
@@ -33,12 +38,19 @@ export function InterviewFormFlow({
   context,
   onComplete,
   completionMessage = 'Thank you for providing all the information. Let me design your course...',
+  subjectId,
+  interviewType,
+  savedState = null,
 }: InterviewFormFlowProps) {
-  const [currentStep, setCurrentStep] = useState<FlowStep>('initial');
-  const [currentQuestions, setCurrentQuestions] = useState<Question[]>(initialQuestions);
+  // Initialize state from savedState if provided, otherwise use defaults
+  const [currentStep, setCurrentStep] = useState<FlowStep>(savedState?.currentStep || 'initial');
+  const [currentQuestions, setCurrentQuestions] = useState<Question[]>(
+    savedState?.followUpQuestions || initialQuestions
+  );
   const [isLoading, setIsLoading] = useState(false);
-  const [stepNumber, setStepNumber] = useState(1);
-  const [allAnswers, setAllAnswers] = useState<Record<string, string>>({});
+  const [stepNumber, setStepNumber] = useState(savedState?.stepNumber || 1);
+  const [allAnswers, setAllAnswers] = useState<Record<string, string>>(savedState?.allAnswers || {});
+  const [lastSaveTime, setLastSaveTime] = useState<string | null>(savedState?.timestamp || null);
 
   const handleFormSubmit = async (answers: Record<string, string>) => {
     setIsLoading(true);
@@ -54,6 +66,23 @@ export function InterviewFormFlow({
       if (isComplete) {
         // Interview is complete
         setCurrentStep('complete');
+
+        // Save final state before completing (only if subjectId is provided)
+        if (subjectId) {
+          const interviewResult = agent.getInterviewResult();
+          InterviewStorage.save(subjectId, {
+            type: interviewType,
+            subjectId,
+            allAnswers: mergedAnswers,
+            courseName: interviewResult && 'courseName' in interviewResult ? interviewResult.courseName : undefined,
+            courseContext: interviewResult && 'courseContext' in interviewResult ? interviewResult.courseContext : undefined,
+            currentStep: 'complete',
+            stepNumber,
+            followUpQuestions: undefined,
+          });
+          setLastSaveTime(new Date().toISOString());
+        }
+
         // Wait a moment to show completion state, then notify parent
         setTimeout(() => {
           onComplete();
@@ -64,9 +93,23 @@ export function InterviewFormFlow({
 
         if (followUpQuestions && followUpQuestions.length > 0) {
           // Show follow-up questions
+          const newStep = stepNumber + 1;
           setCurrentQuestions(followUpQuestions);
           setCurrentStep('followup');
-          setStepNumber((prev) => prev + 1);
+          setStepNumber(newStep);
+
+          // Auto-save state (only if subjectId is provided)
+          if (subjectId) {
+            InterviewStorage.save(subjectId, {
+              type: interviewType,
+              subjectId,
+              allAnswers: mergedAnswers,
+              currentStep: 'followup',
+              stepNumber: newStep,
+              followUpQuestions,
+            });
+            setLastSaveTime(new Date().toISOString());
+          }
         } else {
           // No follow-up questions but not complete - this shouldn't happen
           // Default to completing the interview
@@ -88,10 +131,22 @@ export function InterviewFormFlow({
     <div className="flex flex-col h-full bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b px-6 py-4">
-        <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
-        {description && (
-          <p className="text-sm text-gray-600 mt-1">{description}</p>
-        )}
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+            {description && (
+              <p className="text-sm text-gray-600 mt-1">{description}</p>
+            )}
+          </div>
+          {lastSaveTime && currentStep !== 'complete' && (
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Save className="w-4 h-4" />
+              <span>
+                Draft saved {InterviewStorage.getTimeAgo(lastSaveTime)}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Content */}
