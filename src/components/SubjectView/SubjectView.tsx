@@ -9,7 +9,7 @@ import { Plus, GraduationCap } from 'lucide-react';
 import { Header } from '../Shared/Header';
 import { Button } from '../Shared/Button';
 import { CourseCard } from './CourseCard';
-import { InterviewFlow } from '../CourseCreation/InterviewFlow';
+import { InterviewFormFlow } from '../CourseCreation/InterviewFormFlow';
 import { CoursePlanReview } from '../CourseCreation/CoursePlanReview';
 import { GenerationProgress } from '../CourseCreation/GenerationProgress';
 import { ContextManager } from '../../services/storage/ContextManager';
@@ -17,10 +17,10 @@ import { fileSystemService } from '../../services/storage/FileSystemService';
 import { InterviewAgent } from '../../services/agents/InterviewAgent';
 import { CourseDesignerAgent } from '../../services/agents/CourseDesignerAgent';
 import { toKebabCase } from '../../services/storage/DataPaths';
+import { COURSE_INITIAL_QUESTIONS } from '../../services/agents/InitialQuestions';
 import type { Course } from '../../types/course';
-import type { SubjectContext, CourseContext } from '../../types/context';
+import type { SubjectContext, CourseContext, HierarchicalContext } from '../../types/context';
 import type { Module } from '../../types/module';
-import type { Message } from '../CourseCreation/InterviewFlow';
 
 type CreationStep = 'idle' | 'interview' | 'review' | 'saving';
 
@@ -37,9 +37,8 @@ export function SubjectView() {
   const [creationStep, setCreationStep] = useState<CreationStep>('idle');
 
   // Interview state
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isInterviewLoading, setIsInterviewLoading] = useState(false);
   const [interviewAgent, setInterviewAgent] = useState<InterviewAgent | null>(null);
+  const [interviewContext, setInterviewContext] = useState<Partial<HierarchicalContext> | null>(null);
 
   // Course design state
   const [courseName, setCourseName] = useState('');
@@ -72,80 +71,34 @@ export function SubjectView() {
     }
   };
 
-  const handleNewCourse = () => {
-    setCreationStep('interview');
-    setMessages([]);
-    setIsInterviewLoading(true);
+  const handleNewCourse = async () => {
+    if (!subjectId) return;
 
-    // Create interview agent and start interview
-    const agent = new InterviewAgent('course');
-    setInterviewAgent(agent);
-
-    // Get initial message from agent
-    startInterview(agent);
-  };
-
-  const startInterview = async (agent: InterviewAgent) => {
     try {
-      const context = await contextManager.loadHierarchicalContext(subjectId);
-      const agentResponse = await agent.run(
-        'I want to create a new course.',
-        context
-      );
+      setCreationStep('interview');
 
-      setMessages([
-        {
-          role: 'assistant',
-          content: agentResponse.text,
-        },
-      ]);
+      // Load context for the interview
+      const context = await contextManager.loadHierarchicalContext(subjectId);
+      setInterviewContext(context);
+
+      // Create interview agent
+      const agent = new InterviewAgent('course');
+      setInterviewAgent(agent);
     } catch (error) {
       console.error('Error starting interview:', error);
-      setMessages([
-        {
-          role: 'assistant',
-          content: 'Sorry, there was an error starting the interview. Please try again.',
-        },
-      ]);
-    } finally {
-      setIsInterviewLoading(false);
+      alert('Error starting interview. Please try again.');
+      setCreationStep('idle');
     }
   };
 
-  const handleSendMessage = async (message: string) => {
+  const handleInterviewComplete = async () => {
     if (!interviewAgent || !subjectId) return;
 
-    // Add user message
-    setMessages((prev) => [...prev, { role: 'user', content: message }]);
-    setIsInterviewLoading(true);
-
-    try {
-      const context = await contextManager.loadHierarchicalContext(subjectId);
-      const response = await interviewAgent.run(message, context);
-
-      // Add assistant response
-      setMessages((prev) => [...prev, { role: 'assistant', content: response.text }]);
-
-      // Check if interview is complete
-      if (interviewAgent.isComplete()) {
-        const result = interviewAgent.getInterviewResult();
-        if (result && 'courseName' in result) {
-          setCourseName(result.courseName);
-          // Move to course design
-          await designCourse(result.courseName, result.courseContext);
-        }
-      }
-    } catch (error) {
-      console.error('Error sending message:', error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'assistant',
-          content: 'Sorry, there was an error processing your message. Please try again.',
-        },
-      ]);
-    } finally {
-      setIsInterviewLoading(false);
+    const result = interviewAgent.getInterviewResult();
+    if (result && 'courseName' in result) {
+      setCourseName(result.courseName);
+      // Move to course design
+      await designCourse(result.courseName, result.courseContext);
     }
   };
 
@@ -153,7 +106,6 @@ export function SubjectView() {
     if (!subjectId) return;
 
     setCreationStep('review');
-    setIsInterviewLoading(true);
 
     try {
       const context = await contextManager.loadHierarchicalContext(subjectId);
@@ -180,8 +132,6 @@ export function SubjectView() {
       console.error('Error designing course:', error);
       alert('Error designing course. Please try again.');
       setCreationStep('idle');
-    } finally {
-      setIsInterviewLoading(false);
     }
   };
 
@@ -228,8 +178,8 @@ export function SubjectView() {
 
       // Reset state and reload
       setCreationStep('idle');
-      setMessages([]);
       setInterviewAgent(null);
+      setInterviewContext(null);
       setCourseOutline(null);
       await loadSubjectAndCourses();
     } catch (error) {
@@ -241,8 +191,8 @@ export function SubjectView() {
 
   const handleRejectCourse = () => {
     setCreationStep('idle');
-    setMessages([]);
     setInterviewAgent(null);
+    setInterviewContext(null);
     setCourseOutline(null);
   };
 
@@ -263,7 +213,7 @@ export function SubjectView() {
 
   // Show course creation flow
   if (creationStep !== 'idle') {
-    if (creationStep === 'interview') {
+    if (creationStep === 'interview' && interviewAgent && interviewContext) {
       return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
           <Header
@@ -271,13 +221,13 @@ export function SubjectView() {
             onBack={() => setCreationStep('idle')}
           />
           <div className="flex-1">
-            <InterviewFlow
+            <InterviewFormFlow
               title="Course Interview"
               description="Answer a few questions to help me design the perfect course for you"
-              messages={messages}
-              onSendMessage={handleSendMessage}
-              isLoading={isInterviewLoading}
-              isComplete={interviewAgent?.isComplete() || false}
+              initialQuestions={COURSE_INITIAL_QUESTIONS}
+              agent={interviewAgent}
+              context={interviewContext}
+              onComplete={handleInterviewComplete}
             />
           </div>
         </div>

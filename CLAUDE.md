@@ -1,14 +1,14 @@
 # Personal Lesson Agent - Claude Context Guide
 
 **Last Updated:** October 13, 2025
-**Status:** Phase 4 Complete (Phases 1-4 fully functional)
+**Status:** Phase 4 Complete (Phases 1-4 fully functional) + Form-Based Interview Enhancement
 
 ## Project Overview
 
 The Personal Lesson Agent is an AI-powered desktop learning application built with React, TypeScript, and Electron. It creates personalized educational courses with lessons, exercises, and quizzes, featuring an AI tutor that provides context-aware assistance throughout the learning journey.
 
 ### What It Does
-- Creates custom learning subjects via AI interview
+- Creates custom learning subjects via form-based AI interview
 - Generates complete courses with structured modules
 - AI generates all content (lessons, exercises, quizzes)
 - Provides side-by-side AI tutoring during learning
@@ -62,7 +62,7 @@ abstract class Agent {
 5. Returns `AgentResponse` with text, stop reason, and token usage
 
 **Implemented Agents:**
-- `InterviewAgent` - Conducts subject/course creation interviews
+- `InterviewAgent` - Conducts form-based subject/course creation interviews
 - `CourseDesignerAgent` - Generates course structure with modules
 - `ContentGeneratorAgent` - Creates lesson/exercise/quiz content
 - `TutorAgent` - Provides conversational tutoring (no tools)
@@ -142,6 +142,18 @@ window.electron.openInIDE(projectPath: string, ide: string) => Promise<any>
 - Implements tool-use loop with max 10 iterations
 - Methods: `run()`, `getSystemPrompt()`, `getTools()`, `executeTool()`
 
+**`src/services/agents/InterviewAgent.ts`**
+- Form-based interview agent for subjects and courses
+- Uses `generate_follow_up_questions` tool to create dynamic follow-up forms
+- Uses `complete_subject_interview` or `complete_course_interview` to finalize
+- Methods: `processAnswers()`, `getFollowUpQuestions()`, `hasFollowUpQuestions()`, `isComplete()`
+
+**`src/services/agents/InitialQuestions.ts`**
+- Defines predefined initial questions for subjects and courses
+- `SUBJECT_INITIAL_QUESTIONS`: 4 questions about subject, background, tools, goals
+- `COURSE_INITIAL_QUESTIONS`: 6 questions about topic, objectives, knowledge level, project ideas, etc.
+- Question types: text (short), textarea (long), select (dropdown)
+
 **`src/services/storage/ContextManager.ts`**
 - Loads/saves context files at all levels
 - Key methods:
@@ -185,6 +197,23 @@ interface Quiz { type: 'quiz', questionsPath, ... }
 **`src/components/Dashboard/Dashboard.tsx`**
 - Main landing page showing all subjects
 - Entry point for user journey
+
+**`src/components/CourseCreation/InterviewForm.tsx`**
+- Reusable form component for rendering question arrays
+- Supports text, textarea, and select input types
+- Real-time validation with error messages
+- Shows progress indicator (Step X of Y)
+
+**`src/components/CourseCreation/InterviewFormFlow.tsx`**
+- Orchestrates multi-step form-based interview
+- Flow: initial form → AI follow-ups → completion
+- Manages communication with InterviewAgent
+- Shows completion state with smooth transitions
+
+**`src/components/SubjectView/SubjectView.tsx`**
+- Displays all courses for a subject
+- Manages course creation with form-based interview flow
+- Integrates InterviewFormFlow with InterviewAgent
 
 **`src/components/ModuleView/ModuleView.tsx`**
 - Router component for module display
@@ -392,8 +421,6 @@ All views include:
 - Mark complete button
 - Loading and error states
 
----
-
 ## Important Implementation Details
 
 ### Mermaid Diagram Rendering
@@ -447,12 +474,13 @@ const response = await tutorAgent.run(userMessage, enrichedContext);
 ## Known Limitations & Future Work
 
 ### Current Limitations (By Design)
-- No chat history persistence (resets on reload)
-- No streaming AI responses (shows after completion)
+- No chat history persistence for tutor (resets on reload)
+- No streaming AI responses for forms or tutor (shows after completion)
 - Quiz validation is string comparison only (no code execution)
 - No module regeneration from UI (must delete files manually)
 - File tree doesn't show file type icons
 - No keyboard navigation between modules (Next/Previous buttons)
+- Interview cannot be paused/resumed (must complete in one session)
 
 ### Phase 5 Enhancements (Future)
 - Streaming AI responses for real-time chat
@@ -524,3 +552,5 @@ This is a **well-architected, fully-functional educational platform** where AI d
 **Key Success:** Phases 1-4 are complete and working. Users can create subjects, have AI generate entire courses, and learn with an AI tutor by their side. The foundation is solid for future enhancements.
 
 **Current State:** Production-ready for core learning workflow. Polish and advanced features coming in Phases 5-6.
+
+---
