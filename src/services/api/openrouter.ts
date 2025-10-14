@@ -21,20 +21,10 @@ export interface ContentBlock {
   content?: string;
 }
 
-export interface Tool {
-  name: string;
-  description: string;
-  input_schema: {
-    type: 'object';
-    properties: Record<string, unknown>;
-    required?: string[];
-  };
-}
-
 /**
- * OpenAI's tool format (used by OpenRouter)
+ * OpenAI tool format (used by OpenRouter)
  */
-interface OpenAITool {
+export interface Tool {
   type: 'function';
   function: {
     name: string;
@@ -61,20 +51,6 @@ export interface ChatCompletionResponse {
     input_tokens: number;
     output_tokens: number;
   };
-}
-
-/**
- * Convert internal Tool format to OpenAI format expected by OpenRouter
- */
-function convertToolsToOpenAIFormat(tools: Tool[]): OpenAITool[] {
-  return tools.map(tool => ({
-    type: 'function' as const,
-    function: {
-      name: tool.name,
-      description: tool.description,
-      parameters: tool.input_schema,
-    },
-  }));
 }
 
 /**
@@ -166,13 +142,10 @@ export async function chatCompletion(
     requestBody.system = systemPrompt;
   }
 
-  // Add tools if provided (convert to OpenAI format)
+  // Add tools if provided (already in OpenAI format)
   if (tools && tools.length > 0) {
-    requestBody.tools = convertToolsToOpenAIFormat(tools);
+    requestBody.tools = tools;
   }
-
-  // Debug logging (can be removed later)
-  console.log('Request to OpenRouter:', JSON.stringify(requestBody, null, 2));
 
   try {
     const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {

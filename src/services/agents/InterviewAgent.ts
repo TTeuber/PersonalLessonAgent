@@ -105,53 +105,56 @@ Remember: This course should be tailored to their specific needs!`;
 
   protected getTools(): Tool[] {
     const followUpTool: Tool = {
-      name: 'generate_follow_up_questions',
-      description: 'Generate follow-up questions based on the answers provided. Use this when you need more information before completing the interview.',
-      input_schema: {
-        type: 'object',
-        properties: {
-          questions: {
-            type: 'array',
-            description: 'Array of follow-up questions to ask',
-            items: {
-              type: 'object',
-              properties: {
-                id: {
-                  type: 'string',
-                  description: 'Unique identifier for the question (e.g., "followup_1", "project_details")',
+      type: 'function',
+      function: {
+        name: 'generate_follow_up_questions',
+        description: 'Generate follow-up questions based on the answers provided. Use this when you need more information before completing the interview.',
+        parameters: {
+          type: 'object',
+          properties: {
+            questions: {
+              type: 'array',
+              description: 'Array of follow-up questions to ask',
+              items: {
+                type: 'object',
+                properties: {
+                  id: {
+                    type: 'string',
+                    description: 'Unique identifier for the question (e.g., "followup_1", "project_details")',
+                  },
+                  label: {
+                    type: 'string',
+                    description: 'The question text to display',
+                  },
+                  type: {
+                    type: 'string',
+                    enum: ['text', 'textarea', 'select'],
+                    description: 'Input type: text (short), textarea (long), select (dropdown)',
+                  },
+                  placeholder: {
+                    type: 'string',
+                    description: 'Placeholder text (optional)',
+                  },
+                  required: {
+                    type: 'boolean',
+                    description: 'Whether the question is required',
+                  },
+                  options: {
+                    type: 'array',
+                    items: { type: 'string' },
+                    description: 'Options for select type questions',
+                  },
+                  helpText: {
+                    type: 'string',
+                    description: 'Helper text to guide the user (optional)',
+                  },
                 },
-                label: {
-                  type: 'string',
-                  description: 'The question text to display',
-                },
-                type: {
-                  type: 'string',
-                  enum: ['text', 'textarea', 'select'],
-                  description: 'Input type: text (short), textarea (long), select (dropdown)',
-                },
-                placeholder: {
-                  type: 'string',
-                  description: 'Placeholder text (optional)',
-                },
-                required: {
-                  type: 'boolean',
-                  description: 'Whether the question is required',
-                },
-                options: {
-                  type: 'array',
-                  items: { type: 'string' },
-                  description: 'Options for select type questions',
-                },
-                helpText: {
-                  type: 'string',
-                  description: 'Helper text to guide the user (optional)',
-                },
+                required: ['id', 'label', 'type', 'required'],
               },
-              required: ['id', 'label', 'type', 'required'],
             },
           },
+          required: ['questions'],
         },
-        required: ['questions'],
       },
     };
 
@@ -159,21 +162,24 @@ Remember: This course should be tailored to their specific needs!`;
       return [
         followUpTool,
         {
-          name: 'complete_subject_interview',
-          description: 'Call this when you have gathered sufficient information about the subject. This completes the interview.',
-          input_schema: {
-            type: 'object',
-            properties: {
-              subjectName: {
-                type: 'string',
-                description: 'A clear, concise name for the subject (e.g., "Embedded Development", "Audio DSP", "Web Development")',
+          type: 'function',
+          function: {
+            name: 'complete_subject_interview',
+            description: 'Call this when you have gathered sufficient information about the subject. This completes the interview.',
+            parameters: {
+              type: 'object',
+              properties: {
+                subjectName: {
+                  type: 'string',
+                  description: 'A clear, concise name for the subject (e.g., "Embedded Development", "Audio DSP", "Web Development")',
+                },
+                subjectContext: {
+                  type: 'object',
+                  description: 'Flexible JSON object containing all relevant information about the subject. Include fields like: tools, hardware, background, goals, experienceLevel, interests, etc. Adapt to what is relevant for THIS specific subject.',
+                },
               },
-              subjectContext: {
-                type: 'object',
-                description: 'Flexible JSON object containing all relevant information about the subject. Include fields like: tools, hardware, background, goals, experienceLevel, interests, etc. Adapt to what is relevant for THIS specific subject.',
-              },
+              required: ['subjectName', 'subjectContext'],
             },
-            required: ['subjectName', 'subjectContext'],
           },
         },
       ];
@@ -181,21 +187,24 @@ Remember: This course should be tailored to their specific needs!`;
       return [
         followUpTool,
         {
-          name: 'complete_course_interview',
-          description: 'Call this when you have gathered sufficient information about the course. This completes the interview.',
-          input_schema: {
-            type: 'object',
-            properties: {
-              courseName: {
-                type: 'string',
-                description: 'A clear, descriptive name for the course (e.g., "ARM Cortex-M Interrupts", "Building Audio Effects", "React Fundamentals")',
+          type: 'function',
+          function: {
+            name: 'complete_course_interview',
+            description: 'Call this when you have gathered sufficient information about the course. This completes the interview.',
+            parameters: {
+              type: 'object',
+              properties: {
+                courseName: {
+                  type: 'string',
+                  description: 'A clear, descriptive name for the course (e.g., "ARM Cortex-M Interrupts", "Building Audio Effects", "React Fundamentals")',
+                },
+                courseContext: {
+                  type: 'object',
+                  description: 'Flexible JSON object containing all relevant information about the course. Include fields like: goal, prerequisites, timeCommitment, learningStyle, projectIdea, specificChallenges, etc. Adapt to what is relevant for THIS specific course.',
+                },
               },
-              courseContext: {
-                type: 'object',
-                description: 'Flexible JSON object containing all relevant information about the course. Include fields like: goal, prerequisites, timeCommitment, learningStyle, projectIdea, specificChallenges, etc. Adapt to what is relevant for THIS specific course.',
-              },
+              required: ['courseName', 'courseContext'],
             },
-            required: ['courseName', 'courseContext'],
           },
         },
       ];

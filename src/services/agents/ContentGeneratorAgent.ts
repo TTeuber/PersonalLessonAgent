@@ -114,91 +114,100 @@ When ready, use the appropriate tool to submit your content.`;
   protected getTools(): Tool[] {
     return [
       {
-        name: 'create_lesson_content',
-        description: 'Create markdown content for a lesson',
-        input_schema: {
-          type: 'object',
-          properties: {
-            markdown: {
-              type: 'string',
-              description: 'Complete lesson content in markdown format',
+        type: 'function',
+        function: {
+          name: 'create_lesson_content',
+          description: 'Create markdown content for a lesson',
+          parameters: {
+            type: 'object',
+            properties: {
+              markdown: {
+                type: 'string',
+                description: 'Complete lesson content in markdown format',
+              },
             },
+            required: ['markdown'],
           },
-          required: ['markdown'],
         },
       },
       {
-        name: 'create_exercise_files',
-        description: 'Create exercise project files',
-        input_schema: {
-          type: 'object',
-          properties: {
-            files: {
-              type: 'array',
-              description: 'Array of files to create for the exercise project',
-              items: {
-                type: 'object',
-                properties: {
-                  path: {
-                    type: 'string',
-                    description: 'Relative path to the file within the project folder (e.g., "src/main.js" or "README.md")',
+        type: 'function',
+        function: {
+          name: 'create_exercise_files',
+          description: 'Create exercise project files',
+          parameters: {
+            type: 'object',
+            properties: {
+              files: {
+                type: 'array',
+                description: 'Array of files to create for the exercise project',
+                items: {
+                  type: 'object',
+                  properties: {
+                    path: {
+                      type: 'string',
+                      description: 'Relative path to the file within the project folder (e.g., "src/main.js" or "README.md")',
+                    },
+                    content: {
+                      type: 'string',
+                      description: 'Complete content of the file',
+                    },
                   },
-                  content: {
-                    type: 'string',
-                    description: 'Complete content of the file',
-                  },
+                  required: ['path', 'content'],
                 },
-                required: ['path', 'content'],
+              },
+              description: {
+                type: 'string',
+                description: 'Markdown description of the exercise (shown separately from project files)',
               },
             },
-            description: {
-              type: 'string',
-              description: 'Markdown description of the exercise (shown separately from project files)',
-            },
+            required: ['files', 'description'],
           },
-          required: ['files', 'description'],
         },
       },
       {
-        name: 'create_quiz_questions',
-        description: 'Create quiz questions with answers and explanations',
-        input_schema: {
-          type: 'object',
-          properties: {
-            questions: {
-              type: 'array',
-              description: 'Array of quiz questions',
-              items: {
-                type: 'object',
-                properties: {
-                  type: {
-                    type: 'string',
-                    enum: ['multiple-choice', 'short-answer', 'code-completion'],
-                    description: 'Type of question',
+        type: 'function',
+        function: {
+          name: 'create_quiz_questions',
+          description: 'Create quiz questions with answers and explanations',
+          parameters: {
+            type: 'object',
+            properties: {
+              questions: {
+                type: 'array',
+                description: 'Array of quiz questions',
+                items: {
+                  type: 'object',
+                  properties: {
+                    type: {
+                      type: 'string',
+                      enum: ['multiple-choice', 'short-answer', 'code-completion'],
+                      description: 'Type of question',
+                    },
+                    question: {
+                      type: 'string',
+                      description: 'The question text',
+                    },
+                    options: {
+                      type: 'array',
+                      items: { type: 'string' },
+                      description: 'Answer options (required for multiple-choice, omit for other types)',
+                    },
+                    correctAnswer: {
+                      type: 'string',
+                      description: 'The correct answer (option letter for multiple-choice, expected answer for others)',
+                    },
+                    explanation: {
+                      type: 'string',
+                      description: 'Explanation of why this is the correct answer',
+                    },
                   },
-                  question: {
-                    type: 'string',
-                    description: 'The question text',
-                  },
-                  options: {
-                    type: 'array',
-                    items: { type: 'string' },
-                    description: 'Answer options (required for multiple-choice, omit for other types)',
-                  },
-                  correctAnswer: {
-                    type: 'string',
-                    description: 'The correct answer (option letter for multiple-choice, expected answer for others)',
-                  },
-                  explanation: {
-                    type: 'string',
-                    description: 'Explanation of why this is the correct answer',
-                  },
+                  required: ['type', 'question', 'correctAnswer', 'explanation'],
                 },
-                required: ['type', 'question', 'correctAnswer', 'explanation'],
               },
             },
+            required: ['questions'],
           },
-          required: ['questions'],
         },
       },
     ];

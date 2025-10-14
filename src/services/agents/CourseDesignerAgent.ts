@@ -56,40 +56,43 @@ When you're ready, use the create_course_outline tool to submit your design.`;
   protected getTools(): Tool[] {
     return [
       {
-        name: 'create_course_outline',
-        description: 'Create the complete course structure with all modules',
-        input_schema: {
-          type: 'object',
-          properties: {
-            modules: {
-              type: 'array',
-              description: 'Array of module outlines in sequential order',
-              items: {
-                type: 'object',
-                properties: {
-                  type: {
-                    type: 'string',
-                    enum: ['lesson', 'exercise', 'quiz'],
-                    description: 'The type of module',
+        type: 'function',
+        function: {
+          name: 'create_course_outline',
+          description: 'Create the complete course structure with all modules',
+          parameters: {
+            type: 'object',
+            properties: {
+              modules: {
+                type: 'array',
+                description: 'Array of module outlines in sequential order',
+                items: {
+                  type: 'object',
+                  properties: {
+                    type: {
+                      type: 'string',
+                      enum: ['lesson', 'exercise', 'quiz'],
+                      description: 'The type of module',
+                    },
+                    title: {
+                      type: 'string',
+                      description: 'Clear, descriptive title for the module',
+                    },
+                    description: {
+                      type: 'string',
+                      description: 'Detailed description of what this module covers and its learning objectives',
+                    },
+                    order: {
+                      type: 'number',
+                      description: 'Sequential order (0-indexed). First module is 0, second is 1, etc.',
+                    },
                   },
-                  title: {
-                    type: 'string',
-                    description: 'Clear, descriptive title for the module',
-                  },
-                  description: {
-                    type: 'string',
-                    description: 'Detailed description of what this module covers and its learning objectives',
-                  },
-                  order: {
-                    type: 'number',
-                    description: 'Sequential order (0-indexed). First module is 0, second is 1, etc.',
-                  },
+                  required: ['type', 'title', 'description', 'order'],
                 },
-                required: ['type', 'title', 'description', 'order'],
               },
             },
+            required: ['modules'],
           },
-          required: ['modules'],
         },
       },
     ];
