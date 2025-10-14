@@ -17,6 +17,7 @@ interface InterviewFormFlowProps {
   agent: InterviewAgent;
   context: Partial<HierarchicalContext>;
   onComplete: () => void;
+  completionMessage?: string;
 }
 
 type FlowStep = 'initial' | 'followup' | 'complete';
@@ -31,6 +32,7 @@ export function InterviewFormFlow({
   agent,
   context,
   onComplete,
+  completionMessage = 'Thank you for providing all the information. Let me design your course...',
 }: InterviewFormFlowProps) {
   const [currentStep, setCurrentStep] = useState<FlowStep>('initial');
   const [currentQuestions, setCurrentQuestions] = useState<Question[]>(initialQuestions);
@@ -105,7 +107,7 @@ export function InterviewFormFlow({
                 Interview Complete!
               </h3>
               <p className="text-gray-600">
-                Thank you for providing all the information. Let me design your course...
+                {completionMessage}
               </p>
             </div>
           ) : (

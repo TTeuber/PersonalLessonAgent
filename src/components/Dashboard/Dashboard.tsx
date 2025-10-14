@@ -3,10 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Book } from 'lucide-react';
 import { Header } from '../Shared/Header';
 import { Button } from '../Shared/Button';
-import { NewSubjectDialog } from './NewSubjectDialog';
+import { InterviewFormFlow } from '../CourseCreation/InterviewFormFlow';
+import { GenerationProgress } from '../CourseCreation/GenerationProgress';
 import { ContextManager } from '../../services/storage/ContextManager';
 import { fileSystemService } from '../../services/storage/FileSystemService';
-import type { SubjectContext, UserContext } from '../../types/context';
+import { InterviewAgent } from '../../services/agents/InterviewAgent';
+import { toKebabCase } from '../../services/storage/DataPaths';
+import { SUBJECT_INITIAL_QUESTIONS } from '../../services/agents/InitialQuestions';
+import type { SubjectContext, UserContext, HierarchicalContext } from '../../types/context';
+
+type CreationStep = 'idle' | 'interview' | 'saving';
 
 interface DashboardProps {
   userContext: UserContext;
@@ -19,7 +25,11 @@ export function Dashboard({ userContext }: DashboardProps) {
   const navigate = useNavigate();
   const [subjects, setSubjects] = useState<SubjectContext[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showNewSubjectDialog, setShowNewSubjectDialog] = useState(false);
+  const [creationStep, setCreationStep] = useState<CreationStep>('idle');
+
+  // Interview state
+  const [interviewAgent, setInterviewAgent] = useState<InterviewAgent | null>(null);
+  const [interviewContext, setInterviewContext] = useState<Partial<HierarchicalContext> | null>(null);
 
   const contextManager = new ContextManager(fileSystemService);
 
@@ -39,15 +49,118 @@ export function Dashboard({ userContext }: DashboardProps) {
     }
   };
 
-  const handleNewSubject = () => {
-    setShowNewSubjectDialog(true);
+  const handleNewSubject = async () => {
+    try {
+      setCreationStep('interview');
+
+      // Load user context for the interview
+      const context = await contextManager.loadHierarchicalContext();
+      setInterviewContext(context);
+
+      // Create interview agent
+      const agent = new InterviewAgent('subject');
+      setInterviewAgent(agent);
+    } catch (error) {
+      console.error('Error starting interview:', error);
+      alert('Error starting interview. Please try again.');
+      setCreationStep('idle');
+    }
   };
 
-  const handleSubjectCreated = () => {
-    setShowNewSubjectDialog(false);
-    loadSubjects(); // Reload subjects list
+  const handleInterviewComplete = async () => {
+    if (!interviewAgent) return;
+
+    const result = interviewAgent.getInterviewResult();
+    if (result && 'subjectName' in result) {
+      await saveSubject(result.subjectName, result.subjectContext);
+    }
   };
 
+  const saveSubject = async (name: string, subjectContext: Record<string, unknown>) => {
+    setCreationStep('saving');
+
+    try {
+      const subjectId = toKebabCase(name);
+
+      // Check if subject already exists
+      const exists = await fileSystemService.exists(`${subjectId}/subject-context.json`);
+      if (exists) {
+        alert('A subject with this name already exists');
+        setCreationStep('idle');
+        return;
+      }
+
+      // Create subject context
+      const fullSubjectContext: SubjectContext = {
+        subjectName: name,
+        subjectId,
+        createdAt: new Date().toISOString(),
+        ...subjectContext,
+      };
+
+      // Create subject directory
+      await fileSystemService.createDirectory(subjectId);
+
+      // Save subject context
+      await contextManager.saveContext('subject', fullSubjectContext, subjectId);
+
+      // Reset state and reload
+      setCreationStep('idle');
+      setInterviewAgent(null);
+      setInterviewContext(null);
+      await loadSubjects();
+    } catch (error) {
+      console.error('Error saving subject:', error);
+      alert('Error saving subject. Please try again.');
+      setCreationStep('idle');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show subject creation flow
+  if (creationStep !== 'idle') {
+    if (creationStep === 'interview' && interviewAgent && interviewContext) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex flex-col">
+          <Header
+            title="Create New Subject"
+            onBack={() => setCreationStep('idle')}
+          />
+          <div className="flex-1">
+            <InterviewFormFlow
+              title="Subject Interview"
+              description="Answer a few questions to help me understand what you want to learn"
+              initialQuestions={SUBJECT_INITIAL_QUESTIONS}
+              agent={interviewAgent}
+              context={interviewContext}
+              onComplete={handleInterviewComplete}
+              completionMessage="Thank you for providing all the information. Creating your subject..."
+            />
+          </div>
+        </div>
+      );
+    }
+
+    if (creationStep === 'saving') {
+      return (
+        <div className="min-h-screen bg-gray-50">
+          <GenerationProgress step="saving" message="Creating your subject..." />
+        </div>
+      );
+    }
+  }
+
+  // Main dashboard view
   return (
     <div className="min-h-screen bg-gray-50">
       <Header
@@ -61,12 +174,7 @@ export function Dashboard({ userContext }: DashboardProps) {
       />
 
       <main className="max-w-7xl mx-auto px-4 py-8">
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading subjects...</p>
-          </div>
-        ) : subjects.length === 0 ? (
+        {subjects.length === 0 ? (
           <div className="text-center py-12">
             <Book className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h2 className="text-2xl font-semibold text-gray-700 mb-2">No subjects yet</h2>
@@ -102,13 +210,6 @@ export function Dashboard({ userContext }: DashboardProps) {
           </div>
         )}
       </main>
-
-      {showNewSubjectDialog && (
-        <NewSubjectDialog
-          onClose={() => setShowNewSubjectDialog(false)}
-          onSuccess={handleSubjectCreated}
-        />
-      )}
     </div>
   );
 }
