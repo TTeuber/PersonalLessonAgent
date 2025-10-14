@@ -1,7 +1,7 @@
 # Personal Lesson Agent - Claude Context Guide
 
-**Last Updated:** October 13, 2025
-**Status:** Phase 4 Complete (Phases 1-4 fully functional) + Form-Based Interview Enhancement
+**Last Updated:** October 14, 2025
+**Status:** Phase 4 Complete (Phases 1-4 fully functional) + Module Browser System
 
 ## Project Overview
 
@@ -64,7 +64,10 @@ abstract class Agent {
 **Implemented Agents:**
 - `InterviewAgent` - Conducts form-based subject/course creation interviews
 - `CourseDesignerAgent` - Generates course structure with modules
-- `ContentGeneratorAgent` - Creates lesson/exercise/quiz content
+- `ContentGeneratorAgent` - Creates lesson/exercise/quiz content (maxTokens: 16000)
+  - Increased token limit to support complex multi-file exercises
+  - System prompt encourages quality over quantity, starter code with TODOs
+  - Aware of file browser system for flexible module structures
 - `TutorAgent` - Provides conversational tutoring (no tools)
 
 ### 3. Data Storage
@@ -85,12 +88,16 @@ personal-lesson-agent-data/
         ├── modules.json                  # Array of all modules
         └── {module-id}/                  # kebab-case with type prefix
             ├── module-context.json       # Module metadata
-            ├── content.md                # Lesson content (lessons only)
-            ├── description.md            # Exercise description (exercises only)
-            ├── questions.json            # Quiz questions (quizzes only)
-            └── project/                  # Exercise files (exercises only)
+            ├── content.md                # Lesson content (typical for lessons)
+            ├── description.md            # Exercise description (typical for exercises)
+            ├── questions.json            # Quiz questions (typical for quizzes)
+            ├── [any additional files...] # Modules can contain any files
+            └── project/                  # Exercise project folder (typical for exercises)
                 ├── README.md
                 └── [project files...]
+
+Note: With the Module Browser, users can now access ALL files in a module directory,
+not just the type-specific primary files. Modules can contain flexible content structures.
 ```
 
 ### 4. IPC Communication
@@ -218,12 +225,25 @@ interface Quiz { type: 'quiz', questionsPath, ... }
 **`src/components/ModuleView/ModuleView.tsx`**
 - Router component for module display
 - Loads module and full hierarchical context
-- Routes to LessonView, ExerciseView, or QuizView based on type
+- Routes all module types to ModuleBrowserView (unified interface)
+
+**`src/components/ModuleView/ModuleBrowserView.tsx`**
+- Unified 3-panel module viewer with file browser
+- Left panel: Resizable, collapsible file tree showing all module files/folders
+- Center panel: Smart content viewer (auto-detects file type: markdown, JSON, code, text)
+- Right panel: AI Tutor chat (resizable, collapsible)
+- Supports viewing any file in module directory, not just primary content
+- Special rendering for questions.json files via QuizQuestionsViewer
+
+**`src/components/ModuleView/QuizQuestionsViewer.tsx`**
+- Read-only viewer for questions.json files
+- Displays quiz questions with answers and explanations in formatted cards
+- Used within ModuleBrowserView when viewing quiz question files
 
 **`src/components/ModuleView/AITutorChat.tsx`**
 - Reusable chat interface
 - Integrates with TutorAgent
-- Used in all three module view types
+- Used in ModuleBrowserView
 
 **`src/components/Shared/MarkdownRenderer.tsx`**
 - Renders markdown with GitHub flavored support
@@ -409,15 +429,15 @@ SubjectView (/subject/:subjectId)
 CourseView (/subject/:subjectId/course/:courseId)
   ↓ Click module
 ModuleView (/subject/:subjectId/course/:courseId/module/:moduleId)
-  ↓ Routes to:
-    - LessonView (type: lesson)
-    - ExerciseView (type: exercise)
-    - QuizView (type: quiz)
+  ↓ Renders:
+    - ModuleBrowserView (unified file browser for all module types)
 ```
 
-All views include:
-- Back navigation
-- AI tutor chat (toggle-able)
+ModuleBrowserView features:
+- Back navigation to course
+- 3-panel layout: file tree (left) + content viewer (center) + AI tutor (right)
+- Resizable and collapsible sidebars
+- Smart content rendering based on file type
 - Mark complete button
 - Loading and error states
 
@@ -477,8 +497,10 @@ const response = await tutorAgent.run(userMessage, enrichedContext);
 - No streaming AI responses for forms or tutor (shows after completion)
 - Quiz validation is string comparison only (no code execution)
 - No module regeneration from UI (must delete files manually)
-- File tree doesn't show file type icons
+- File tree uses generic File/Folder icons (no file type specific icons)
+- No syntax highlighting for code files in browser (monospace only)
 - No keyboard navigation between modules (Next/Previous buttons)
+- No search/filter in module file tree
 
 ### Phase 5 Enhancements (Future)
 - Streaming AI responses for real-time chat
@@ -489,7 +511,10 @@ const response = await tutorAgent.run(userMessage, enrichedContext);
 
 ### Phase 6 IDE & Polish (Future)
 - Enhanced IDE launcher with auto-detection
-- In-app file editing
+- In-app file editing (file browser provides viewing, editing would be next step)
+- Syntax highlighting for code files
+- File type specific icons in tree
+- Search/filter in module file tree
 - Context editor UI
 - Module regeneration from UI
 - Keyboard navigation shortcuts
@@ -546,7 +571,9 @@ DEFAULT_MODEL = 'anthropic/claude-sonnet-4.5'
 
 This is a **well-architected, fully-functional educational platform** where AI does the heavy lifting of content creation and tutoring. The hierarchical context system ensures AI always has full awareness of the learner's background and goals. The agent pattern provides a clean abstraction for all AI interactions. File-based storage keeps things simple and inspectable.
 
-**Key Success:** Phases 1-4 are complete and working. Users can create subjects, have AI generate entire courses, and learn with an AI tutor by their side. The foundation is solid for future enhancements.
+**Key Success:** Phases 1-4 are complete and working. Users can create subjects, have AI generate entire courses, and learn with an AI tutor by their side. The Module Browser System provides a flexible, unified interface for viewing all module content with resizable panels and smart file type detection.
+
+**Recent Enhancement:** The Module Browser System (October 2025) replaced type-specific views with a unified file browser, enabling flexible module structures and better content discovery. The AI content generation system now produces higher-quality exercises with increased token limits and better guidance.
 
 **Current State:** Production-ready for core learning workflow. Polish and advanced features coming in Phases 5-6.
 
