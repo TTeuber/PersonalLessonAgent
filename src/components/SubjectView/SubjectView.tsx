@@ -47,6 +47,9 @@ export function SubjectView() {
   // Course design state
   const [courseName, setCourseName] = useState('');
   const [courseOutline, setCourseOutline] = useState<any>(null);
+  const [courseContext, setCourseContext] = useState<Record<string, unknown> | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isModifying, setIsModifying] = useState(false);
 
   const contextManager = new ContextManager(fileSystemService);
 
@@ -216,7 +219,12 @@ export function SubjectView() {
     const result = interviewAgent.getInterviewResult();
     if (result && 'courseName' in result) {
       setCourseName(result.courseName);
-      // Move to course design
+      setCourseContext(result.courseContext);
+
+      // Navigate to review page immediately
+      setCreationStep('review');
+
+      // Start course design in the background
       await designCourse(result.courseName, result.courseContext);
     }
   };
@@ -224,7 +232,7 @@ export function SubjectView() {
   const designCourse = async (name: string, courseContext: Record<string, unknown>) => {
     if (!subjectId) return;
 
-    setCreationStep('review');
+    setIsGenerating(true);
 
     try {
       const context = await contextManager.loadHierarchicalContext(subjectId);
@@ -309,6 +317,8 @@ export function SubjectView() {
         : 'Unknown error occurred';
       alert(`Error designing course: ${errorMessage}`);
       setCreationStep('idle');
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -352,6 +362,7 @@ export function SubjectView() {
         id: `${m.type}-${String(m.order + 1).padStart(2, '0')}-${toKebabCase(m.title)}`,
         type: m.type,
         title: m.title,
+        description: m.description,
         completed: false,
         order: m.order,
         ...(m.type === 'lesson' && { contentPath: '' }),
@@ -381,11 +392,98 @@ export function SubjectView() {
     }
   };
 
-  const handleRejectCourse = () => {
+  const handleStartOver = () => {
     setCreationStep('idle');
     setInterviewAgent(null);
     setInterviewContext(null);
     setCourseOutline(null);
+    setCourseContext(null);
+    setCourseName('');
+    setIsGenerating(false);
+    setIsModifying(false);
+  };
+
+  const handleModifyCourse = async (modificationRequest: string) => {
+    if (!subjectId || !courseName || !courseContext) return;
+
+    setIsModifying(true);
+
+    try {
+      const context = await contextManager.loadHierarchicalContext(subjectId);
+      // Add course context to the hierarchical context
+      context.course = {
+        courseName,
+        courseId: toKebabCase(courseName),
+        ...courseContext,
+      } as CourseContext;
+
+      // Build user message with current outline and modification request
+      let userMessage = `I need you to modify the course outline based on the following feedback:\n\n`;
+      userMessage += `**Modification Request:**\n${modificationRequest}\n\n`;
+
+      if (courseOutline) {
+        userMessage += `**Current Course Outline:**\n`;
+        userMessage += `The course currently has ${courseOutline.modules.length} modules:\n`;
+        courseOutline.modules.forEach((module: any, index: number) => {
+          userMessage += `${index + 1}. [${module.type.toUpperCase()}] ${module.title}\n`;
+          userMessage += `   ${module.description}\n\n`;
+        });
+      }
+
+      userMessage += `\n## Original Course Details:\n`;
+      userMessage += `- **Course Name:** ${courseName}\n`;
+      userMessage += `- **Subject:** ${context.subject?.subjectName || 'Not specified'}\n\n`;
+
+      userMessage += `## Interview Answers:\n`;
+      if (courseContext && typeof courseContext === 'object') {
+        Object.entries(courseContext).forEach(([key, value]) => {
+          if (key !== 'createdAt' && key !== 'courseId') {
+            const formattedKey = key
+              .replace(/([A-Z])/g, ' $1')
+              .replace(/^./, str => str.toUpperCase())
+              .trim();
+            const formattedValue = Array.isArray(value)
+              ? value.join(', ')
+              : typeof value === 'object'
+              ? JSON.stringify(value, null, 2)
+              : String(value);
+            userMessage += `- **${formattedKey}:** ${formattedValue}\n`;
+          }
+        });
+      }
+
+      userMessage += `\n**Please create a new course outline that addresses the modification request while maintaining the course goals and learner preferences.**`;
+
+      console.log('Modification request for designer:', userMessage);
+
+      const designer = new CourseDesignerAgent();
+      const response = await designer.run(
+        userMessage,
+        context as any
+      );
+
+      console.log('Modified designer response:', response);
+
+      const outline = designer.getCourseOutline();
+      console.log('Modified course outline:', outline);
+
+      if (outline) {
+        setCourseOutline(outline);
+      } else {
+        throw new Error(
+          `Failed to generate modified course outline. AI response: ${response.text}. ` +
+          `Stop reason: ${response.stopReason}`
+        );
+      }
+    } catch (error) {
+      console.error('Error modifying course:', error);
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Unknown error occurred';
+      alert(`Error modifying course: ${errorMessage}`);
+    } finally {
+      setIsModifying(false);
+    }
   };
 
   const handleCourseClick = (course: Course) => {
@@ -429,20 +527,23 @@ export function SubjectView() {
       );
     }
 
-    if (creationStep === 'review' && courseOutline) {
+    if (creationStep === 'review') {
       return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
           <Header
             title="Review Course Plan"
-            onBack={handleRejectCourse}
+            onBack={handleStartOver}
           />
           <div className="flex-1">
             <CoursePlanReview
               courseName={courseName}
-              modules={courseOutline.modules}
+              modules={courseOutline?.modules}
               onApprove={handleApproveCourse}
-              onReject={handleRejectCourse}
+              onModify={handleModifyCourse}
+              onStartOver={handleStartOver}
               isProcessing={false}
+              isGenerating={isGenerating}
+              isModifying={isModifying}
             />
           </div>
         </div>

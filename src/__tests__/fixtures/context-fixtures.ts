@@ -30,7 +30,7 @@ export const mockCourseContext: CourseContext = {
   courseName: 'Test Course',
   courseId: 'test-course',
   goal: 'Learn test-driven development',
-  prerequisitesCovered: 'Basic programming concepts',
+  prerequisitesCovered: ['Basic programming concepts'],
   targetKnowledgeLevel: 'intermediate',
   createdAt: '2025-01-01T00:00:00.000Z',
 };
@@ -74,7 +74,9 @@ export const mockLesson: Lesson = {
   type: 'lesson',
   id: 'lesson-01-intro',
   title: 'Introduction to Testing',
+  description: 'Learn the fundamentals of testing and why it matters in software development.',
   completed: false,
+  order: 0,
   contentPath: 'test-subject/test-course/lesson-01-intro/content.md',
 };
 
@@ -82,7 +84,9 @@ export const mockExercise: Exercise = {
   type: 'exercise',
   id: 'exercise-01-practice',
   title: 'Practice Exercise',
+  description: 'Apply your testing knowledge by writing unit tests for a simple calculator.',
   completed: false,
+  order: 1,
   descriptionPath: 'test-subject/test-course/exercise-01-practice/description.md',
   projectPath: 'test-subject/test-course/exercise-01-practice/project',
 };
@@ -91,7 +95,9 @@ export const mockQuiz: Quiz = {
   type: 'quiz',
   id: 'quiz-01-assessment',
   title: 'Assessment Quiz',
+  description: 'Test your understanding of testing concepts and best practices.',
   completed: false,
+  order: 2,
   questionsPath: 'test-subject/test-course/quiz-01-assessment/questions.json',
 };
 

@@ -6,6 +6,7 @@ export interface BaseModule {
   id: string;
   type: 'lesson' | 'exercise' | 'quiz';
   title: string;
+  description?: string;
   completed: boolean;
   order: number;
 }

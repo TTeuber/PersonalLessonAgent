@@ -108,9 +108,15 @@ export function ModuleListItem({
           <h3 className="font-medium text-gray-900 dark:text-gray-100 truncate">
             {module.title}
           </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">
-            {module.type}
-          </p>
+          {module.description ? (
+            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+              {module.description}
+            </p>
+          ) : (
+            <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">
+              {module.type}
+            </p>
+          )}
         </div>
       </div>
 

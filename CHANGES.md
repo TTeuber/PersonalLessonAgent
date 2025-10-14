@@ -1,12 +1,12 @@
 # CHANGES
 
-## Interview Agent
+## Course Plan Review
 
-- The interview agent shouldn't generate the initial questions because this makes for an inconsistent experience.
-  - The interview process should probably start with a form with predefined questions before moving to the interview.
-  - The interview will generate questions based on the answers on the form to gather more information.
-  - I think it would be good if each step in this interview process was a form.
-    - When going past the initial questions form, the interview agent would generate an array of questions that would get turned into a form.
-    - This would make for a better user experience for answering each specific question.
+- Right now the options are approve and start over, but it should be approve or modify (suggest changes, not totally start over)
+- If user chooses modify, they would right down what they want to change, the AI would update the plan and it would be displayed again
 
-## Context Management
+
+## Processing Visual Feedback
+
+- Right now, when finishing the course interview, the user is show a page saying interview complete, and then redirected back to the page they were at before the interview while the interview is being processed with no visual feedback that the interview is being processed.
+- I think they should be brought directly to the Course Plan Review page directly, with the indication that the interview is being processed.
