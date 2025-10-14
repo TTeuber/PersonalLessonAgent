@@ -37,6 +37,62 @@ export interface Tool {
   };
 }
 
+/**
+ * OpenAI message formats
+ */
+interface OpenAITextMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+interface OpenAIAssistantToolCallMessage {
+  role: 'assistant';
+  content: string | null;
+  tool_calls: Array<{
+    id: string;
+    type: 'function';
+    function: {
+      name: string;
+      arguments: string;
+    };
+  }>;
+}
+
+interface OpenAIToolMessage {
+  role: 'tool';
+  tool_call_id: string;
+  content: string;
+}
+
+type OpenAIMessage = OpenAITextMessage | OpenAIAssistantToolCallMessage | OpenAIToolMessage;
+
+/**
+ * OpenRouter API response structure
+ */
+interface OpenRouterChoice {
+  message?: {
+    content?: string | ContentBlock[];
+    tool_calls?: Array<{
+      id: string;
+      type: 'function';
+      function: {
+        name: string;
+        arguments: string;
+      };
+    }>;
+  };
+  finish_reason?: 'stop' | 'length' | 'tool_calls' | 'content_filter';
+}
+
+interface OpenRouterResponse {
+  model?: string;
+  choices?: OpenRouterChoice[];
+  usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+  };
+}
+
 export interface ToolCall {
   id: string;
   name: string;
@@ -56,14 +112,14 @@ export interface ChatCompletionResponse {
 /**
  * Convert messages with content blocks to OpenAI format
  */
-function convertMessagesToOpenAIFormat(messages: Message[]): any[] {
+function convertMessagesToOpenAIFormat(messages: Message[]): OpenAIMessage[] {
   return messages.map(msg => {
     // If content is a string, just return as-is
     if (typeof msg.content === 'string') {
       return {
         role: msg.role,
         content: msg.content,
-      };
+      } as OpenAITextMessage;
     }
 
     // If content is an array of blocks, we need to convert based on type
@@ -80,14 +136,14 @@ function convertMessagesToOpenAIFormat(messages: Message[]): any[] {
         role: 'assistant',
         content: textBlocks.map(b => b.text).join('\n') || null,
         tool_calls: toolBlocks.map(b => ({
-          id: b.id,
-          type: 'function',
+          id: b.id!,
+          type: 'function' as const,
           function: {
-            name: b.name,
+            name: b.name!,
             arguments: JSON.stringify(b.input),
           },
         })),
-      };
+      } as OpenAIAssistantToolCallMessage;
     }
 
     // Check if this is a user message with tool results
@@ -95,10 +151,10 @@ function convertMessagesToOpenAIFormat(messages: Message[]): any[] {
     if (hasToolResult && msg.role === 'user') {
       // Convert to OpenAI format with role: 'tool'
       return blocks.map(b => ({
-        role: 'tool',
-        tool_call_id: b.tool_use_id,
-        content: b.content,
-      }));
+        role: 'tool' as const,
+        tool_call_id: b.tool_use_id!,
+        content: b.content!,
+      } as OpenAIToolMessage));
     }
 
     // Otherwise, extract text
@@ -110,7 +166,7 @@ function convertMessagesToOpenAIFormat(messages: Message[]): any[] {
     return {
       role: msg.role,
       content: text,
-    };
+    } as OpenAITextMessage;
   }).flat(); // Flat because tool results return arrays
 }
 
@@ -151,8 +207,8 @@ export async function chatCompletion(
   console.log('[OpenRouter] Request:', {
     model: requestBody.model,
     hasSystem: !!requestBody.system,
-    hasTools: requestBody.tools?.length || 0,
-    toolNames: requestBody.tools?.map((t: any) => t.function.name) || [],
+    hasTools: (requestBody.tools as Tool[] | undefined)?.length || 0,
+    toolNames: (requestBody.tools as Tool[] | undefined)?.map(t => t.function.name) || [],
     messageCount: openAIMessages.length,
     lastMessage: openAIMessages[openAIMessages.length - 1],
   });
@@ -190,9 +246,9 @@ export async function chatCompletion(
     }
 
     // Try to parse JSON
-    let data;
+    let data: OpenRouterResponse;
     try {
-      data = JSON.parse(responseText);
+      data = JSON.parse(responseText) as OpenRouterResponse;
     } catch (parseError) {
       console.error('[OpenRouter] JSON parse error. First 500 chars of response:', responseText.substring(0, 500));
       throw new Error(`Failed to parse OpenRouter response: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
@@ -201,11 +257,13 @@ export async function chatCompletion(
       model: data.model,
       finishReason: data.choices?.[0]?.finish_reason,
       hasToolCalls: !!data.choices?.[0]?.message?.tool_calls,
-      toolCalls: data.choices?.[0]?.message?.tool_calls?.map((tc: any) => ({
+      toolCalls: data.choices?.[0]?.message?.tool_calls?.map(tc => ({
         name: tc.function.name,
         argsLength: tc.function.arguments.length,
       })) || [],
-      contentLength: data.choices?.[0]?.message?.content?.length || 0,
+      contentLength: typeof data.choices?.[0]?.message?.content === 'string'
+        ? data.choices[0].message.content.length
+        : 0,
     });
 
     // OpenRouter wraps Anthropic's response format
@@ -240,14 +298,14 @@ export async function chatCompletion(
 
       // Convert OpenRouter tool_calls format to Anthropic format
       if (choice.message?.tool_calls) {
-        content = choice.message.tool_calls.map((tc: any) => {
+        content = choice.message.tool_calls.map(tc => {
           try {
             return {
-              type: 'tool_use',
+              type: 'tool_use' as const,
               id: tc.id,
               name: tc.function.name,
               input: typeof tc.function.arguments === 'string'
-                ? JSON.parse(tc.function.arguments)
+                ? JSON.parse(tc.function.arguments) as Record<string, unknown>
                 : tc.function.arguments,
             };
           } catch (parseError) {
