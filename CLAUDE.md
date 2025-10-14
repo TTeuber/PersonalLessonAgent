@@ -474,17 +474,14 @@ const response = await tutorAgent.run(userMessage, enrichedContext);
 ## Known Limitations & Future Work
 
 ### Current Limitations (By Design)
-- No chat history persistence for tutor (resets on reload)
 - No streaming AI responses for forms or tutor (shows after completion)
 - Quiz validation is string comparison only (no code execution)
 - No module regeneration from UI (must delete files manually)
 - File tree doesn't show file type icons
 - No keyboard navigation between modules (Next/Previous buttons)
-- Interview cannot be paused/resumed (must complete in one session)
 
 ### Phase 5 Enhancements (Future)
 - Streaming AI responses for real-time chat
-- Chat history persistence to disk
 - More sophisticated context awareness
 - Proactive hints based on user behavior
 - Code execution for programming exercises
