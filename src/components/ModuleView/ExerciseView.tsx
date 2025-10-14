@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, CheckCircle, MessageSquare, Code, ExternalLink, File, Folder, ChevronRight, ChevronDown } from 'lucide-react';
 import type { Exercise } from '../../types/module';
 import type { HierarchicalContext } from '../../types/context';
@@ -28,10 +28,44 @@ export function ExerciseView({ module, context, onComplete, onBack }: ExerciseVi
   const [fileTree, setFileTree] = useState<FileNode[]>([]);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [fileContent, setFileContent] = useState<string>('');
+  const [chatWidth, setChatWidth] = useState(384); // Default 384px (w-96)
+  const [isResizing, setIsResizing] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadExerciseData();
   }, [module.descriptionPath, module.projectPath]);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing || !containerRef.current) return;
+
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const newWidth = containerRect.right - e.clientX;
+
+      // Constrain width between 300px and 800px
+      const constrainedWidth = Math.max(300, Math.min(800, newWidth));
+      setChatWidth(constrainedWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'ew-resize';
+      document.body.style.userSelect = 'none';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizing]);
 
   const loadExerciseData = async () => {
     try {
@@ -154,13 +188,18 @@ export function ExerciseView({ module, context, onComplete, onBack }: ExerciseVi
     }
   };
 
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+  };
+
   const renderFileTree = (nodes: FileNode[], depth: number = 0) => {
     return nodes.map(node => (
       <div key={node.path}>
         <button
           onClick={() => selectFile(node)}
-          className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-gray-100 transition-colors ${
-            selectedFile === node.path ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+          className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
+            selectedFile === node.path ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'
           }`}
           style={{ paddingLeft: `${depth * 12 + 12}px` }}
         >
@@ -186,15 +225,15 @@ export function ExerciseView({ module, context, onComplete, onBack }: ExerciseVi
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div ref={containerRef} className="flex h-screen bg-gray-50 dark:bg-gray-900">
       {/* Exercise Content - Left Side */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="bg-white border-b px-6 py-4 flex items-center justify-between">
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={onBack}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+              className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
             >
               <ChevronLeft className="w-5 h-5" />
               <span>Back to Course</span>
@@ -203,14 +242,14 @@ export function ExerciseView({ module, context, onComplete, onBack }: ExerciseVi
           <div className="flex items-center gap-3">
             <button
               onClick={handleOpenInIDE}
-              className="flex items-center gap-2 px-4 py-2 text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
             >
               <ExternalLink className="w-4 h-4" />
               <span>Open in IDE</span>
             </button>
             <button
               onClick={() => setShowChat(!showChat)}
-              className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             >
               <MessageSquare className="w-4 h-4" />
               <span>{showChat ? 'Hide' : 'Show'} Tutor</span>
@@ -225,7 +264,7 @@ export function ExerciseView({ module, context, onComplete, onBack }: ExerciseVi
               </button>
             )}
             {module.completed && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-lg">
+              <div className="flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-lg">
                 <CheckCircle className="w-4 h-4" />
                 <span>Completed</span>
               </div>
@@ -236,16 +275,16 @@ export function ExerciseView({ module, context, onComplete, onBack }: ExerciseVi
         {/* Exercise Content - Split View */}
         <div className="flex-1 flex overflow-hidden">
           {/* Description and File Tree */}
-          <div className="w-1/2 flex flex-col border-r">
+          <div className="w-1/2 flex flex-col border-r border-gray-200 dark:border-gray-700">
             {/* Description */}
-            <div className="flex-1 overflow-y-auto px-6 py-6 bg-white">
+            <div className="flex-1 overflow-y-auto px-6 py-6 bg-white dark:bg-gray-800">
               <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <Code className="w-6 h-6 text-purple-600" />
+                <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                  <Code className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">{module.title}</h1>
-                  <p className="text-sm text-gray-500 mt-1">Exercise #{module.order}</p>
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{module.title}</h1>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Exercise #{module.order}</p>
                 </div>
               </div>
 
@@ -253,7 +292,7 @@ export function ExerciseView({ module, context, onComplete, onBack }: ExerciseVi
                 <div className="flex items-center justify-center py-12">
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading exercise...</p>
+                    <p className="text-gray-600 dark:text-gray-400">Loading exercise...</p>
                   </div>
                 </div>
               ) : (
@@ -262,33 +301,33 @@ export function ExerciseView({ module, context, onComplete, onBack }: ExerciseVi
             </div>
 
             {/* File Tree */}
-            <div className="h-64 border-t bg-gray-50">
-              <div className="px-4 py-3 bg-white border-b">
-                <h3 className="font-semibold text-sm text-gray-900">Project Files</h3>
+            <div className="h-64 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+              <div className="px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100">Project Files</h3>
               </div>
               <div className="overflow-y-auto h-[calc(100%-48px)]">
                 {fileTree.length > 0 ? (
                   renderFileTree(fileTree)
                 ) : (
-                  <p className="text-sm text-gray-500 p-4">No files found</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 p-4">No files found</p>
                 )}
               </div>
             </div>
           </div>
 
           {/* File Viewer */}
-          <div className="w-1/2 flex flex-col bg-gray-900">
+          <div className="w-1/2 flex flex-col bg-gray-900 dark:bg-gray-950">
             {selectedFile ? (
               <>
-                <div className="px-4 py-3 bg-gray-800 border-b border-gray-700">
-                  <p className="text-sm text-gray-300 truncate">{selectedFile.split('/').pop()}</p>
+                <div className="px-4 py-3 bg-gray-800 dark:bg-gray-900 border-b border-gray-700">
+                  <p className="text-sm text-gray-300 dark:text-gray-400 truncate">{selectedFile.split('/').pop()}</p>
                 </div>
                 <pre className="flex-1 overflow-auto p-4 text-sm text-gray-100 font-mono">
                   {fileContent}
                 </pre>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center text-gray-500">
+              <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400">
                 <p>Select a file to view its contents</p>
               </div>
             )}
@@ -296,15 +335,28 @@ export function ExerciseView({ module, context, onComplete, onBack }: ExerciseVi
         </div>
       </div>
 
-      {/* AI Tutor Chat - Right Side */}
+      {/* AI Tutor Chat - Right Side with Resize Handle */}
       {showChat && (
-        <div className="w-96 border-l bg-gray-50 flex flex-col">
-          <div className="p-4 bg-white border-b flex items-center gap-2">
-            <MessageSquare className="w-5 h-5 text-blue-600" />
-            <h2 className="font-semibold text-gray-900">AI Tutor</h2>
+        <>
+          {/* Resize Handle */}
+          <div
+            onMouseDown={handleResizeStart}
+            className="w-1 bg-gray-300 dark:bg-gray-700 hover:bg-blue-500 dark:hover:bg-blue-500 cursor-ew-resize transition-colors flex-shrink-0"
+            style={{ touchAction: 'none' }}
+          />
+
+          {/* Chat Panel */}
+          <div
+            className="border-l border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex flex-col flex-shrink-0"
+            style={{ width: `${chatWidth}px` }}
+          >
+            <div className="p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <h2 className="font-semibold text-gray-900 dark:text-gray-100">AI Tutor</h2>
+            </div>
+            <AITutorChat context={context} moduleContent={description} />
           </div>
-          <AITutorChat context={context} moduleContent={description} />
-        </div>
+        </>
       )}
     </div>
   );

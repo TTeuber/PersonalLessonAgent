@@ -107,10 +107,10 @@ export function ModuleView() {
   // Loading state
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading module...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading module...</p>
         </div>
       </div>
     );
@@ -119,9 +119,9 @@ export function ModuleView() {
   // Error state
   if (error || !module || !context) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <p className="text-red-600 text-lg mb-4">{error || 'Failed to load module'}</p>
+          <p className="text-red-600 dark:text-red-400 text-lg mb-4">{error || 'Failed to load module'}</p>
           <button
             onClick={handleBackToCourse}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -164,9 +164,9 @@ export function ModuleView() {
       );
     default:
       return (
-        <div className="flex items-center justify-center h-screen">
+        <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
           <div className="text-center">
-            <p className="text-red-600 text-lg mb-4">Unknown module type</p>
+            <p className="text-red-600 dark:text-red-400 text-lg mb-4">Unknown module type</p>
             <button
               onClick={handleBackToCourse}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"

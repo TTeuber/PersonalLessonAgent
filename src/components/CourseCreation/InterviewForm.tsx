@@ -79,14 +79,14 @@ export function InterviewForm({
       {currentStep !== undefined && totalSteps !== undefined && (
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Step {currentStep} of {totalSteps}
             </span>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
               {Math.round((currentStep / totalSteps) * 100)}% complete
             </span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
             <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${(currentStep / totalSteps) * 100}%` }}
@@ -100,10 +100,10 @@ export function InterviewForm({
         <div key={question.id}>
           <label
             htmlFor={question.id}
-            className="block text-sm font-medium text-gray-700 mb-2"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
           >
             {question.label}
-            {question.required && <span className="text-red-500 ml-1">*</span>}
+            {question.required && <span className="text-red-500 dark:text-red-400 ml-1">*</span>}
           </label>
 
           {question.type === 'text' && (
@@ -114,8 +114,8 @@ export function InterviewForm({
               onChange={(e) => handleChange(question.id, e.target.value)}
               placeholder={question.placeholder}
               disabled={isLoading}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed ${
-                errors[question.id] ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed ${
+                errors[question.id] ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
               }`}
             />
           )}
@@ -128,8 +128,8 @@ export function InterviewForm({
               placeholder={question.placeholder}
               disabled={isLoading}
               rows={4}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed resize-none ${
-                errors[question.id] ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed resize-none ${
+                errors[question.id] ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
               }`}
             />
           )}
@@ -140,8 +140,8 @@ export function InterviewForm({
               value={answers[question.id] || ''}
               onChange={(e) => handleChange(question.id, e.target.value)}
               disabled={isLoading}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed ${
-                errors[question.id] ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed ${
+                errors[question.id] ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
               }`}
             >
               <option value="">Select an option...</option>
@@ -155,12 +155,12 @@ export function InterviewForm({
 
           {/* Help text */}
           {question.helpText && !errors[question.id] && (
-            <p className="mt-1 text-sm text-gray-500">{question.helpText}</p>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{question.helpText}</p>
           )}
 
           {/* Error message */}
           {errors[question.id] && (
-            <p className="mt-1 text-sm text-red-600">{errors[question.id]}</p>
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors[question.id]}</p>
           )}
         </div>
       ))}

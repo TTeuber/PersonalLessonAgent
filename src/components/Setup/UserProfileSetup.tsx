@@ -54,20 +54,20 @@ export function UserProfileSetup({ onComplete }: UserProfileSetupProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full p-8">
         <div className="text-center mb-8">
-          <div className="inline-block p-3 bg-blue-100 rounded-full mb-4">
-            <User className="w-12 h-12 text-blue-600" />
+          <div className="inline-block p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-4">
+            <User className="w-12 h-12 text-blue-600 dark:text-blue-400" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to Personal Lesson Agent</h1>
-          <p className="text-gray-600">Let's set up your learning profile</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Welcome to Personal Lesson Agent</h1>
+          <p className="text-gray-600 dark:text-gray-400">Let's set up your learning profile</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Name Input */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               What's your name?
             </label>
             <input
@@ -75,7 +75,7 @@ export function UserProfileSetup({ onComplete }: UserProfileSetupProps) {
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter your name"
               autoFocus
             />
@@ -83,7 +83,7 @@ export function UserProfileSetup({ onComplete }: UserProfileSetupProps) {
 
           {/* Preferred IDE */}
           <div>
-            <label htmlFor="ide" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="ide" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               <Code className="w-4 h-4 inline mr-2" />
               Preferred IDE
             </label>
@@ -91,7 +91,7 @@ export function UserProfileSetup({ onComplete }: UserProfileSetupProps) {
               id="ide"
               value={preferredIDE}
               onChange={(e) => setPreferredIDE(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               {IDE_OPTIONS.map((ide) => (
                 <option key={ide.id} value={ide.id}>
@@ -103,7 +103,7 @@ export function UserProfileSetup({ onComplete }: UserProfileSetupProps) {
 
           {/* Learning Style */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
               <BookOpen className="w-4 h-4 inline mr-2" />
               Learning Style Preference
             </label>
@@ -111,10 +111,10 @@ export function UserProfileSetup({ onComplete }: UserProfileSetupProps) {
               {LEARNING_STYLES.map((style) => (
                 <label
                   key={style.id}
-                  className="flex items-start p-4 border-2 rounded-lg cursor-pointer transition-colors hover:bg-gray-50"
+                  className="flex items-start p-4 border-2 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
                   style={{
-                    borderColor: learningStylePreference === style.id ? '#2563eb' : '#e5e7eb',
-                    backgroundColor: learningStylePreference === style.id ? '#eff6ff' : 'white',
+                    borderColor: learningStylePreference === style.id ? '#2563eb' : (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches ? '#4b5563' : '#e5e7eb'),
+                    backgroundColor: learningStylePreference === style.id ? (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches ? '#1e3a8a' : '#eff6ff') : (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches ? '#1f2937' : 'white'),
                   }}
                 >
                   <input
@@ -126,8 +126,8 @@ export function UserProfileSetup({ onComplete }: UserProfileSetupProps) {
                     className="mt-1 mr-3"
                   />
                   <div>
-                    <div className="font-medium text-gray-900">{style.name}</div>
-                    <div className="text-sm text-gray-600">{style.description}</div>
+                    <div className="font-medium text-gray-900 dark:text-gray-100">{style.name}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">{style.description}</div>
                   </div>
                 </label>
               ))}
@@ -135,7 +135,7 @@ export function UserProfileSetup({ onComplete }: UserProfileSetupProps) {
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg">
               {error}
             </div>
           )}

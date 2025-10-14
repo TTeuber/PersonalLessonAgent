@@ -15,6 +15,7 @@ import {
   getModuleContextPath,
   getCoursePath,
   getCourseModulesPath,
+  getModuleChatHistoryPath,
 } from './DataPaths';
 
 /**
@@ -327,5 +328,38 @@ export class ContextManager {
   ): Promise<Module | null> {
     const modules = await this.loadCourseModules(subjectId, courseId);
     return modules.find(m => m.id === moduleId) || null;
+  }
+
+  /**
+   * Load chat history for a module
+   */
+  async loadChatHistory(
+    subjectId: string,
+    courseId: string,
+    moduleId: string
+  ): Promise<Array<{ role: 'user' | 'assistant'; content: string }>> {
+    const chatHistoryPath = getModuleChatHistoryPath(subjectId, courseId, moduleId);
+    if (await this.fs.exists(chatHistoryPath)) {
+      try {
+        return await this.fs.readJSON<Array<{ role: 'user' | 'assistant'; content: string }>>(chatHistoryPath);
+      } catch (error) {
+        console.error('Error loading chat history:', error);
+        return [];
+      }
+    }
+    return [];
+  }
+
+  /**
+   * Save chat history for a module
+   */
+  async saveChatHistory(
+    subjectId: string,
+    courseId: string,
+    moduleId: string,
+    messages: Array<{ role: 'user' | 'assistant'; content: string }>
+  ): Promise<void> {
+    const chatHistoryPath = getModuleChatHistoryPath(subjectId, courseId, moduleId);
+    await this.fs.writeJSON(chatHistoryPath, messages);
   }
 }

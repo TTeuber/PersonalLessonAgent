@@ -164,23 +164,26 @@ export function Dashboard({ userContext }: DashboardProps) {
 
   // Main dashboard view
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header
         title={`Welcome, ${userContext.name || 'Learner'}!`}
         actions={
-          <Button onClick={handleNewSubject}>
-            <Plus className="w-5 h-5 mr-2" />
-            New Subject
-          </Button>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Button onClick={handleNewSubject}>
+              <Plus className="w-5 h-5 mr-2" />
+              New Subject
+            </Button>
+          </div>
         }
       />
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         {subjects.length === 0 ? (
           <div className="text-center py-12">
-            <Book className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold text-gray-700 mb-2">No subjects yet</h2>
-            <p className="text-gray-600 mb-6">
+            <Book className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+            <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No subjects yet</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
               Create your first subject to start your learning journey
             </p>
             <Button onClick={handleNewSubject} size="lg">
@@ -193,18 +196,18 @@ export function Dashboard({ userContext }: DashboardProps) {
             {subjects.map((subject) => (
               <div
                 key={subject.subjectId}
-                className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6 cursor-pointer"
+                className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/30 hover:shadow-lg dark:hover:shadow-gray-900/50 transition-shadow p-6 cursor-pointer"
                 onClick={() => navigate(`/subject/${subject.subjectId}`)}
               >
                 <div className="flex items-start justify-between mb-4">
-                  <div className="p-3 bg-blue-100 rounded-lg">
-                    <Book className="w-6 h-6 text-blue-600" />
+                  <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <Book className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   </div>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
                   {subject.subjectName}
                 </h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Created {new Date(subject.createdAt).toLocaleDateString()}
                 </p>
               </div>

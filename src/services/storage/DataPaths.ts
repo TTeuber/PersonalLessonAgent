@@ -88,6 +88,13 @@ export function getQuizQuestionsPath(subjectId: string, courseId: string, module
 }
 
 /**
+ * Get the path to a module's chat history file
+ */
+export function getModuleChatHistoryPath(subjectId: string, courseId: string, moduleId: string): string {
+  return `${subjectId}/${courseId}/${moduleId}/chat-history.json`;
+}
+
+/**
  * Convert a string to kebab-case for use as an ID
  */
 export function toKebabCase(str: string): string {

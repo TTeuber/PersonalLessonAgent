@@ -62,34 +62,34 @@ export function CoursePlanReview({
   );
 
   return (
-    <div className="flex flex-col h-full bg-gray-50">
+    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white border-b px-6 py-6">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-6">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">{courseName}</h2>
-            <p className="text-sm text-gray-600">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">{courseName}</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Review the generated course structure below
             </p>
           </div>
-          <CheckCircle className="w-8 h-8 text-green-600" />
+          <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
         </div>
 
         {/* Module summary */}
         <div className="flex gap-4 text-sm">
           <div className="flex items-center gap-2">
-            <Book className="w-4 h-4 text-blue-600" />
-            <span className="text-gray-600">{counts.lesson} Lessons</span>
+            <Book className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <span className="text-gray-600 dark:text-gray-400">{counts.lesson} Lessons</span>
           </div>
           <div className="flex items-center gap-2">
-            <Code className="w-4 h-4 text-green-600" />
-            <span className="text-gray-600">{counts.exercise} Exercises</span>
+            <Code className="w-4 h-4 text-green-600 dark:text-green-400" />
+            <span className="text-gray-600 dark:text-gray-400">{counts.exercise} Exercises</span>
           </div>
           <div className="flex items-center gap-2">
-            <ClipboardList className="w-4 h-4 text-purple-600" />
-            <span className="text-gray-600">{counts.quiz} Quizzes</span>
+            <ClipboardList className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+            <span className="text-gray-600 dark:text-gray-400">{counts.quiz} Quizzes</span>
           </div>
-          <div className="text-gray-600 font-medium">
+          <div className="text-gray-600 dark:text-gray-400 font-medium">
             Total: {modules.length} modules
           </div>
         </div>
@@ -106,11 +106,11 @@ export function CoursePlanReview({
             return (
               <div
                 key={index}
-                className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
+                className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md dark:hover:shadow-gray-900/30 transition-shadow"
               >
                 <div className="flex items-start gap-4">
                   {/* Module number */}
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-semibold text-gray-600">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-sm font-semibold text-gray-600 dark:text-gray-300">
                     {index + 1}
                   </div>
 
@@ -122,14 +122,14 @@ export function CoursePlanReview({
                   {/* Module content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-medium text-gray-500 uppercase">
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                         {label}
                       </span>
                     </div>
-                    <h3 className="text-base font-semibold text-gray-900 mb-2">
+                    <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">
                       {module.title}
                     </h3>
-                    <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
                       {module.description}
                     </p>
                   </div>
@@ -141,7 +141,7 @@ export function CoursePlanReview({
       </div>
 
       {/* Actions */}
-      <div className="bg-white border-t px-6 py-4">
+      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
         <div className="flex gap-3 justify-end">
           <Button
             variant="outline"
@@ -157,7 +157,7 @@ export function CoursePlanReview({
             {isProcessing ? 'Creating Course...' : 'Approve & Create Course'}
           </Button>
         </div>
-        <p className="text-xs text-gray-500 mt-3 text-center">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">
           Once approved, the course structure will be saved and you can start learning!
         </p>
       </div>

@@ -38,7 +38,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
   }, [content]);
 
   return (
-    <div ref={containerRef} className="prose prose-lg max-w-none prose-headings:font-bold prose-a:text-blue-600 hover:prose-a:text-blue-800">
+    <div ref={containerRef} className="prose prose-lg max-w-none prose-headings:font-bold prose-a:text-blue-600 hover:prose-a:text-blue-800 dark:prose-invert dark:prose-a:text-blue-400 dark:hover:prose-a:text-blue-300">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
@@ -62,7 +62,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
             // Handle inline code
             if (isInline) {
               return (
-                <code className="px-1.5 py-0.5 bg-gray-100 text-gray-800 rounded text-sm font-mono" {...props}>
+                <code className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded text-sm font-mono" {...props}>
                   {children}
                 </code>
               );
@@ -70,7 +70,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
 
             // Handle code blocks
             return (
-              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-4">
+              <pre className="bg-gray-900 dark:bg-gray-950 text-gray-100 p-4 rounded-lg overflow-x-auto my-4">
                 <code className={className} {...props}>
                   {children}
                 </code>
@@ -81,7 +81,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
           table({ children }) {
             return (
               <div className="overflow-x-auto my-6">
-                <table className="min-w-full divide-y divide-gray-300">
+                <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
                   {children}
                 </table>
               </div>
@@ -90,7 +90,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
           // Style blockquotes
           blockquote({ children }) {
             return (
-              <blockquote className="border-l-4 border-blue-500 pl-4 italic my-4 text-gray-700">
+              <blockquote className="border-l-4 border-blue-500 dark:border-blue-400 pl-4 italic my-4 text-gray-700 dark:text-gray-300">
                 {children}
               </blockquote>
             );
@@ -101,7 +101,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
               <img
                 src={src}
                 alt={alt || ''}
-                className="max-w-full h-auto rounded-lg shadow-md my-6"
+                className="max-w-full h-auto rounded-lg shadow-md dark:shadow-gray-900/30 my-6"
               />
             );
           },

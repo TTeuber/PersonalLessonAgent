@@ -25,7 +25,7 @@ export function CourseCard({ course, onClick }: CourseCardProps) {
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-lg shadow hover:shadow-lg transition-all cursor-pointer p-6 border border-gray-200 hover:border-blue-400"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/30 hover:shadow-lg dark:hover:shadow-gray-900/50 transition-all cursor-pointer p-6 border border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
@@ -33,7 +33,7 @@ export function CourseCard({ course, onClick }: CourseCardProps) {
           <GraduationCap className="w-6 h-6 text-white" />
         </div>
         {isComplete && (
-          <div className="flex items-center gap-1 text-green-600">
+          <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
             <CheckCircle className="w-5 h-5" />
             <span className="text-sm font-medium">Complete</span>
           </div>
@@ -41,13 +41,13 @@ export function CourseCard({ course, onClick }: CourseCardProps) {
       </div>
 
       {/* Course name */}
-      <h3 className="text-xl font-semibold text-gray-900 mb-2 line-clamp-2">
+      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2 line-clamp-2">
         {course.courseName}
       </h3>
 
       {/* Goal */}
       {course.goal && (
-        <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
           {course.goal}
         </p>
       )}
@@ -56,12 +56,12 @@ export function CourseCard({ course, onClick }: CourseCardProps) {
       {course.moduleCount > 0 && (
         <div className="mb-3">
           <div className="flex items-center justify-between text-sm mb-2">
-            <span className="text-gray-600">Progress</span>
-            <span className="font-medium text-gray-900">
+            <span className="text-gray-600 dark:text-gray-400">Progress</span>
+            <span className="font-medium text-gray-900 dark:text-gray-100">
               {course.completedCount} / {course.moduleCount} modules
             </span>
           </div>
-          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
             <div
               className={`h-full transition-all duration-300 ${
                 isComplete ? 'bg-green-500' : 'bg-blue-500'
@@ -73,7 +73,7 @@ export function CourseCard({ course, onClick }: CourseCardProps) {
       )}
 
       {/* Metadata */}
-      <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
+      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 pt-3 border-t border-gray-100 dark:border-gray-700">
         <span>Created {new Date(course.createdAt).toLocaleDateString()}</span>
         {course.moduleCount > 0 && (
           <span className="font-medium">{progressPercent}% complete</span>

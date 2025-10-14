@@ -209,12 +209,12 @@ export function CourseView() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Header title="Course" onBack={() => navigate(`/subject/${subjectId}`)} />
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading course...</p>
+            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading course...</p>
           </div>
         </div>
       </div>
@@ -223,13 +223,13 @@ export function CourseView() {
 
   if (error || !course) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Header title="Course" onBack={() => navigate(`/subject/${subjectId}`)} />
         <div className="flex items-center justify-center py-12">
           <div className="text-center max-w-md">
-            <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Course</h2>
-            <p className="text-gray-600">{error || 'Course not found'}</p>
+            <AlertCircle className="w-12 h-12 text-red-600 dark:text-red-400 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Error Loading Course</h2>
+            <p className="text-gray-600 dark:text-gray-400">{error || 'Course not found'}</p>
             <button
               onClick={() => navigate(`/subject/${subjectId}`)}
               className="mt-6 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -248,26 +248,26 @@ export function CourseView() {
   const progressPercentage = modules.length > 0 ? (completedCount / modules.length) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header title={course.courseName} onBack={() => navigate(`/subject/${subjectId}`)} />
 
       <main className="max-w-5xl mx-auto px-4 py-8">
         {/* Course header */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-gray-900/30 p-6 mb-6">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                 {course.courseName}
               </h1>
-              <p className="text-gray-600 mb-4">{course.goal}</p>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">{course.goal}</p>
 
               {/* Progress bar */}
               <div className="mt-4">
-                <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
                   <span>Progress</span>
                   <span>{completedCount} / {modules.length} modules completed</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div
                     className="bg-green-600 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${progressPercentage}%` }}
@@ -280,13 +280,13 @@ export function CourseView() {
 
         {/* Generate all button */}
         {!allContentGenerated && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <h3 className="font-semibold text-blue-900 mb-1">
+                <h3 className="font-semibold text-blue-900 dark:text-blue-200 mb-1">
                   {someContentGenerated ? 'Continue Generating Content' : 'Generate Course Content'}
                 </h3>
-                <p className="text-sm text-blue-700">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
                   {someContentGenerated
                     ? 'Some modules are missing content. Generate the remaining content with AI.'
                     : 'Use AI to generate lessons, exercises, and quizzes for all modules.'}
@@ -306,13 +306,13 @@ export function CourseView() {
 
         {/* Module list */}
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
             Course Modules
           </h2>
 
           {modules.length === 0 ? (
-            <div className="bg-white rounded-lg p-8 text-center">
-              <p className="text-gray-600">No modules found for this course.</p>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-8 text-center">
+              <p className="text-gray-600 dark:text-gray-400">No modules found for this course.</p>
             </div>
           ) : (
             modules.map((module, index) => (

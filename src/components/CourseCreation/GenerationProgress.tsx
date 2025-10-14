@@ -44,21 +44,21 @@ export function GenerationProgress({ step, message }: GenerationProgressProps) {
       {/* Animated icon */}
       <div className="mb-8">
         {isComplete ? (
-          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-            <CheckCircle className="w-10 h-10 text-green-600" />
+          <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+            <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
           </div>
         ) : (
-          <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
-            <Loader className="w-10 h-10 text-blue-600 animate-spin" />
+          <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+            <Loader className="w-10 h-10 text-blue-600 dark:text-blue-400 animate-spin" />
           </div>
         )}
       </div>
 
       {/* Status text */}
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">
+      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
         {stepInfo.label}
       </h2>
-      <p className="text-gray-600 text-center max-w-md mb-8">
+      <p className="text-gray-600 dark:text-gray-400 text-center max-w-md mb-8">
         {message || stepInfo.description}
       </p>
 
@@ -73,7 +73,7 @@ export function GenerationProgress({ step, message }: GenerationProgressProps) {
 
       {/* Additional info for non-complete states */}
       {!isComplete && (
-        <p className="text-sm text-gray-500 mt-8 text-center">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-8 text-center">
           This may take a moment. Please wait...
         </p>
       )}
@@ -101,7 +101,7 @@ function Step({
             ? 'bg-green-600 border-green-600'
             : active
             ? 'bg-blue-600 border-blue-600 animate-pulse'
-            : 'bg-white border-gray-300'
+            : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600'
         }`}
       >
         {complete ? (
@@ -109,12 +109,12 @@ function Step({
         ) : active ? (
           <Loader className="w-5 h-5 text-white animate-spin" />
         ) : (
-          <div className="w-3 h-3 rounded-full bg-gray-300" />
+          <div className="w-3 h-3 rounded-full bg-gray-300 dark:bg-gray-600" />
         )}
       </div>
       <span
         className={`text-xs font-medium ${
-          complete || active ? 'text-gray-900' : 'text-gray-500'
+          complete || active ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
         }`}
       >
         {label}
@@ -130,7 +130,7 @@ function Connector({ complete }: { complete: boolean }) {
   return (
     <div
       className={`w-16 h-0.5 transition-colors ${
-        complete ? 'bg-green-600' : 'bg-gray-300'
+        complete ? 'bg-green-600' : 'bg-gray-300 dark:bg-gray-600'
       }`}
     />
   );

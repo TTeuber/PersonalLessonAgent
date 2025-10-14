@@ -128,18 +128,18 @@ export function InterviewFormFlow({
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-50">
+    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white border-b px-6 py-4">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
             {description && (
-              <p className="text-sm text-gray-600 mt-1">{description}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{description}</p>
             )}
           </div>
           {lastSaveTime && currentStep !== 'complete' && (
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
               <Save className="w-4 h-4" />
               <span>
                 Draft saved {InterviewStorage.getTimeAgo(lastSaveTime)}
@@ -155,24 +155,24 @@ export function InterviewFormFlow({
           {currentStep === 'complete' ? (
             // Completion state
             <div className="text-center py-12">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
-                <CheckCircle className="w-10 h-10 text-green-600" />
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
+                <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
               </div>
-              <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
                 Interview Complete!
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 {completionMessage}
               </p>
             </div>
           ) : (
             // Form step
-            <div className="bg-white rounded-lg shadow-sm border p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-6">
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
                   {currentStep === 'initial' ? 'Tell me about your course' : 'A few more questions'}
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   {currentStep === 'initial'
                     ? 'Please answer the following questions to help me understand what you want to learn.'
                     : 'Based on your answers, I need a bit more information to design the perfect course for you.'}

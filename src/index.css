@@ -1,1 +1,8 @@
 @import "tailwindcss";
+
+/* Configure dark mode with class strategy */
+@layer base {
+  :root {
+    color-scheme: light dark;
+  }
+}
