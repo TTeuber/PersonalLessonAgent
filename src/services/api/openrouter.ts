@@ -31,6 +31,22 @@ export interface Tool {
   };
 }
 
+/**
+ * OpenAI's tool format (used by OpenRouter)
+ */
+interface OpenAITool {
+  type: 'function';
+  function: {
+    name: string;
+    description: string;
+    parameters: {
+      type: 'object';
+      properties: Record<string, unknown>;
+      required?: string[];
+    };
+  };
+}
+
 export interface ToolCall {
   id: string;
   name: string;
@@ -48,6 +64,81 @@ export interface ChatCompletionResponse {
 }
 
 /**
+ * Convert internal Tool format to OpenAI format expected by OpenRouter
+ */
+function convertToolsToOpenAIFormat(tools: Tool[]): OpenAITool[] {
+  return tools.map(tool => ({
+    type: 'function' as const,
+    function: {
+      name: tool.name,
+      description: tool.description,
+      parameters: tool.input_schema,
+    },
+  }));
+}
+
+/**
+ * Convert messages with content blocks to OpenAI format
+ */
+function convertMessagesToOpenAIFormat(messages: Message[]): any[] {
+  return messages.map(msg => {
+    // If content is a string, just return as-is
+    if (typeof msg.content === 'string') {
+      return {
+        role: msg.role,
+        content: msg.content,
+      };
+    }
+
+    // If content is an array of blocks, we need to convert based on type
+    const blocks = msg.content as ContentBlock[];
+
+    // Check if this is an assistant message with tool uses
+    const hasToolUse = blocks.some(b => b.type === 'tool_use');
+    if (hasToolUse && msg.role === 'assistant') {
+      // Convert to OpenAI format with tool_calls
+      const textBlocks = blocks.filter(b => b.type === 'text');
+      const toolBlocks = blocks.filter(b => b.type === 'tool_use');
+
+      return {
+        role: 'assistant',
+        content: textBlocks.map(b => b.text).join('\n') || null,
+        tool_calls: toolBlocks.map(b => ({
+          id: b.id,
+          type: 'function',
+          function: {
+            name: b.name,
+            arguments: JSON.stringify(b.input),
+          },
+        })),
+      };
+    }
+
+    // Check if this is a user message with tool results
+    const hasToolResult = blocks.some(b => b.type === 'tool_result');
+    if (hasToolResult && msg.role === 'user') {
+      // Convert to OpenAI format with role: 'tool'
+      return blocks.map(b => ({
+        role: 'tool',
+        tool_call_id: b.tool_use_id,
+        content: b.content,
+      }));
+    }
+
+    // Otherwise, extract text
+    const text = blocks
+      .filter(b => b.type === 'text' && b.text)
+      .map(b => b.text)
+      .join('\n\n');
+
+    return {
+      role: msg.role,
+      content: text,
+    };
+  }).flat(); // Flat because tool results return arrays
+}
+
+/**
  * Call OpenRouter API with chat completion
  */
 export async function chatCompletion(
@@ -61,12 +152,12 @@ export async function chatCompletion(
     throw new Error('OpenRouter API key not found. Please set VITE_OPENROUTER_API_KEY in .env file');
   }
 
+  // Convert messages to OpenAI format
+  const openAIMessages = convertMessagesToOpenAIFormat(messages);
+
   const requestBody: Record<string, unknown> = {
     model: model || 'anthropic/claude-sonnet-4.5',
-    messages: messages.map(msg => ({
-      role: msg.role,
-      content: msg.content
-    })),
+    messages: openAIMessages,
     max_tokens: maxTokens,
   };
 
@@ -75,10 +166,13 @@ export async function chatCompletion(
     requestBody.system = systemPrompt;
   }
 
-  // Add tools if provided
+  // Add tools if provided (convert to OpenAI format)
   if (tools && tools.length > 0) {
-    requestBody.tools = tools;
+    requestBody.tools = convertToolsToOpenAIFormat(tools);
   }
+
+  // Debug logging (can be removed later)
+  console.log('Request to OpenRouter:', JSON.stringify(requestBody, null, 2));
 
   try {
     const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
