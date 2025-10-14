@@ -5,9 +5,7 @@ import { ContextManager } from '../../services/storage/ContextManager';
 import { FileSystemService } from '../../services/storage/FileSystemService';
 import type { HierarchicalContext } from '../../types/context';
 import type { Module } from '../../types/module';
-import { LessonView } from './LessonView';
-import { ExerciseView } from './ExerciseView';
-import { QuizView } from './QuizView';
+import { ModuleBrowserView } from './ModuleBrowserView';
 
 export function ModuleView() {
   const { subjectId, courseId, moduleId } = useParams<{
@@ -133,48 +131,13 @@ export function ModuleView() {
     );
   }
 
-  // Route to appropriate view based on module type
-  switch (module.type) {
-    case 'lesson':
-      return (
-        <LessonView
-          module={module}
-          context={context}
-          onComplete={handleComplete}
-          onBack={handleBackToCourse}
-        />
-      );
-    case 'exercise':
-      return (
-        <ExerciseView
-          module={module}
-          context={context}
-          onComplete={handleComplete}
-          onBack={handleBackToCourse}
-        />
-      );
-    case 'quiz':
-      return (
-        <QuizView
-          module={module}
-          context={context}
-          onComplete={handleComplete}
-          onBack={handleBackToCourse}
-        />
-      );
-    default:
-      return (
-        <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
-          <div className="text-center">
-            <p className="text-red-600 dark:text-red-400 text-lg mb-4">Unknown module type</p>
-            <button
-              onClick={handleBackToCourse}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Back to Course
-            </button>
-          </div>
-        </div>
-      );
-  }
+  // Route to module browser view for all module types
+  return (
+    <ModuleBrowserView
+      module={module}
+      context={context}
+      onComplete={handleComplete}
+      onBack={handleBackToCourse}
+    />
+  );
 }

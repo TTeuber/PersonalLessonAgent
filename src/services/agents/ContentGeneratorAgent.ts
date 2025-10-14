@@ -38,8 +38,8 @@ export class ContentGeneratorAgent extends Agent {
     this.subjectId = subjectId;
     this.courseId = courseId;
     this.moduleId = moduleId;
-    // Increase max tokens for content generation (lessons can be long)
-    this.maxTokens = 8000;
+    // Increase max tokens for content generation (lessons can be long, exercises can have many files)
+    this.maxTokens = 16000;
   }
 
   protected getSystemPrompt(context: Partial<HierarchicalContext>): string {
@@ -55,6 +55,12 @@ Current Module:
 - Type: ${moduleType}
 - Title: ${moduleTitle}
 - Description: ${moduleContext?.description || 'No description provided'}
+
+IMPORTANT - File Browser System:
+- Learners can now browse ALL files in a module directory through a file browser interface
+- You can create multiple types of content for a single module (flexible structure)
+- Focus on quality over quantity - concise, well-structured content is better than exhaustive files
+- For exercises: Use TODO comments and starter code to guide learners rather than providing complete implementations
 
 Generate content appropriate to the module type:
 
@@ -78,17 +84,19 @@ graph TD
 
 ${moduleType === 'exercise' ? `
 **EXERCISE PROJECT:**
-- Create realistic project files appropriate to the subject
-- Include starter code with clear TODO comments
+- Create realistic but focused project files appropriate to the subject
+- Include STARTER CODE with clear TODO comments (not complete implementations)
+- Keep files concise - learners should write significant code themselves
 - Provide a detailed README.md with:
   - Exercise objective
   - Setup instructions
-  - Step-by-step tasks
+  - Step-by-step tasks with TODO references
   - Expected outcome
-  - Test criteria
+  - Test criteria (if applicable)
 - Reference actual tools/hardware the user has
 - Make it practical and hands-on
-- Include comments explaining key concepts
+- Use comments to explain key concepts and guide implementation
+- Aim for 3-8 well-structured files (quality over quantity)
 ` : ''}
 
 ${moduleType === 'quiz' ? `
