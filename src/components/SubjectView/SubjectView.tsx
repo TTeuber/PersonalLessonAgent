@@ -116,21 +116,33 @@ export function SubjectView() {
         ...courseContext,
       } as CourseContext;
 
+      console.log('Course context for designer:', context);
+
       const designer = new CourseDesignerAgent();
-      await designer.run(
+      const response = await designer.run(
         'Design a course structure based on the interview.',
         context as any
       );
 
+      console.log('Designer response:', response);
+
       const outline = designer.getCourseOutline();
+      console.log('Course outline:', outline);
+
       if (outline) {
         setCourseOutline(outline);
       } else {
-        throw new Error('Failed to generate course outline');
+        throw new Error(
+          `Failed to generate course outline. AI response: ${response.text}. ` +
+          `Stop reason: ${response.stopReason}`
+        );
       }
     } catch (error) {
       console.error('Error designing course:', error);
-      alert('Error designing course. Please try again.');
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Unknown error occurred';
+      alert(`Error designing course: ${errorMessage}`);
       setCreationStep('idle');
     }
   };
