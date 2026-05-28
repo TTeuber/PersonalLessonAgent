@@ -18,7 +18,7 @@ export interface ModelConfig {
 export const MODELS = {
   // Claude Sonnet 4 - Best balance of intelligence and speed
   CLAUDE_SONNET_4: {
-    id: 'anthropic/claude-sonnet-4.5',
+    id: 'anthropic/claude-sonnet-4.6',
     name: 'Claude Sonnet 4',
     provider: 'Anthropic',
     contextWindow: 200000,

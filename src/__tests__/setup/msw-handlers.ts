@@ -15,7 +15,7 @@ export const handlers = [
       // Mock tool use response
       return HttpResponse.json({
         id: 'test-response-id',
-        model: 'anthropic/claude-sonnet-4.5',
+        model: 'anthropic/claude-sonnet-4.6',
         choices: [
           {
             message: {
@@ -53,7 +53,7 @@ export const handlers = [
     // Mock regular text response
     return HttpResponse.json({
       id: 'test-response-id',
-      model: 'anthropic/claude-sonnet-4.5',
+      model: 'anthropic/claude-sonnet-4.6',
       choices: [
         {
           message: {

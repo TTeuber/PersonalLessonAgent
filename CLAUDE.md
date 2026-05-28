@@ -130,7 +130,7 @@ window.electron.openInIDE(projectPath: string, ide: string) => Promise<any>
 
 ### AI Integration
 - **OpenRouter API** - AI API gateway
-- **Claude Sonnet 4** - Default model (anthropic/claude-sonnet-4.5)
+- **Claude Sonnet 4.6** - Default model (anthropic/claude-sonnet-4.6)
 
 ### Key Libraries
 - **lucide-react** - Icon library (NO emojis - strict policy!)
@@ -554,7 +554,7 @@ Module:  ~/personal-lesson-agent-data/{subject-id}/{course-id}/{module-id}/modul
 
 ### API Models
 ```typescript
-DEFAULT_MODEL = 'anthropic/claude-sonnet-4.5'
+DEFAULT_MODEL = 'anthropic/claude-sonnet-4.6'
 // Can override per agent in constructor
 ```
 

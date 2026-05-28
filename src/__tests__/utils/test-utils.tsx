@@ -1,6 +1,6 @@
-import { render, RenderOptions } from '@testing-library/react';
+import { render, type RenderOptions } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import { ReactElement } from 'react';
+import type {ReactElement} from 'react';
 import { vi } from 'vitest';
 
 // Custom render function that includes providers
@@ -92,7 +92,7 @@ export function createRejectedSpy(error: Error) {
 export function createMockAPIResponse(content: string, stopReason = 'end_turn') {
   return {
     id: 'test-response-id',
-    model: 'anthropic/claude-sonnet-4.5',
+    model: 'anthropic/claude-sonnet-4.6',
     choices: [
       {
         message: {

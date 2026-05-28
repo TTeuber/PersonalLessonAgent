@@ -188,7 +188,7 @@ export async function chatCompletion(
   const openAIMessages = convertMessagesToOpenAIFormat(messages);
 
   const requestBody: Record<string, unknown> = {
-    model: model || 'anthropic/claude-sonnet-4.5',
+    model: model || 'anthropic/claude-sonnet-4.6',
     messages: openAIMessages,
     max_tokens: maxTokens,
   };
@@ -322,7 +322,7 @@ export async function chatCompletion(
     return {
       content,
       stop_reason: stopReason,
-      model: data.model || model || 'anthropic/claude-sonnet-4.5',
+      model: data.model || model || 'anthropic/claude-sonnet-4.6',
       usage: data.usage ? {
         input_tokens: data.usage.prompt_tokens || 0,
         output_tokens: data.usage.completion_tokens || 0,
