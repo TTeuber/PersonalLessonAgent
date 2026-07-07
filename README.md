@@ -1,6 +1,16 @@
 # Personal Lesson Agent
 
+[![CI](https://github.com/TTeuber/PersonalLessonAgent/actions/workflows/ci.yml/badge.svg)](https://github.com/TTeuber/PersonalLessonAgent/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 > An AI-powered desktop learning platform that designs personalized courses, generates all educational content, and tutors you side-by-side as you learn.
+
+<!-- TODO: Add a demo GIF + screenshots here (see PORTFOLIO_TODO.md)
+## Demo
+![Course creation interview](Docs/screenshots/interview.png)
+![Module browser with AI tutor](Docs/screenshots/module-browser.png)
+-->
+
 
 Built with **React 19**, **TypeScript**, and **Electron**, the Personal Lesson Agent turns a short interview into a complete, structured course — lessons, hands-on exercises, and quizzes — all authored by AI that understands your background, your tools, and your goals. A context-aware tutor sits beside every module to answer questions in real time.
 
@@ -89,7 +99,7 @@ When any agent runs, it receives the **merged context from all parent levels**. 
 
 **Desktop** · Electron 38 · secure IPC bridge with sandboxed file-system access
 
-**AI** · OpenRouter API · Claude Sonnet 4.5 · custom agent framework with tool-use loop
+**AI** · OpenRouter API · Claude Sonnet 4.6 · custom agent framework with tool-use loop
 
 **Content** · react-markdown · remark-gfm · Mermaid · lucide-react icons
 

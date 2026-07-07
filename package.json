@@ -1,15 +1,22 @@
 {
   "name": "personal-lesson-agent",
+  "description": "AI-powered desktop learning app that generates personalized courses, lessons, exercises, and quizzes with a context-aware AI tutor",
+  "version": "1.0.0",
+  "author": "Tyler Teuber",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TTeuber/PersonalLessonAgent.git"
+  },
   "private": true,
-  "version": "0.0.0",
   "main": "dist-electron/main.js",
   "scripts": {
-    "dev": "node ./node_modules/vite/bin/vite.js",
-    "build": "node ./node_modules/typescript/bin/tsc -b && node ./node_modules/vite/bin/vite.js build",
+    "dev": "vite",
+    "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "node ./node_modules/vite/bin/vite.js preview",
-    "electron:dev": "node ./node_modules/typescript/bin/tsc -p electron/tsconfig.json && NODE_ENV=development electron .",
-    "electron:build": "npm run build && node ./node_modules/typescript/bin/tsc -p electron/tsconfig.json && electron-builder",
+    "preview": "vite preview",
+    "electron:dev": "tsc -p electron/tsconfig.json && NODE_ENV=development electron .",
+    "electron:build": "npm run build && tsc -p electron/tsconfig.json && electron-builder",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
@@ -17,7 +24,8 @@
     "test:coverage": "vitest run --coverage"
   },
   "build": {
-    "appId": "com.myapp.id",
+    "appId": "com.tylerteuber.personal-lesson-agent",
+    "productName": "Personal Lesson Agent",
     "files": [
       "dist/**/*",
       "dist-electron/**/*"
