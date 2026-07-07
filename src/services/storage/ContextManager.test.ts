@@ -7,8 +7,6 @@ import {
   mockCourseContext,
   mockLessonContext,
   mockLesson,
-  mockExercise,
-  mockQuiz,
   mockModules,
 } from '../../__tests__/fixtures/context-fixtures';
 import { createMockFileSystemService } from '../../__tests__/utils/test-utils';

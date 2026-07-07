@@ -2,6 +2,7 @@ import { render, type RenderOptions } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import type {ReactElement} from 'react';
 import { vi } from 'vitest';
+import { ThemeProvider } from '../../contexts/ThemeContext';
 
 // Custom render function that includes providers
 export function renderWithRouter(
@@ -9,7 +10,11 @@ export function renderWithRouter(
   options?: Omit<RenderOptions, 'wrapper'>
 ) {
   return render(ui, {
-    wrapper: ({ children }) => <BrowserRouter>{children}</BrowserRouter>,
+    wrapper: ({ children }) => (
+      <ThemeProvider>
+        <BrowserRouter>{children}</BrowserRouter>
+      </ThemeProvider>
+    ),
     ...options,
   });
 }

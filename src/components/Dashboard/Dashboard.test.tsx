@@ -1,11 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Dashboard } from './Dashboard';
 import { mockUserContext, mockSubjectContext } from '../../__tests__/fixtures/context-fixtures';
 import { renderWithRouter, mockElectronAPI } from '../../__tests__/utils/test-utils';
-import * as FileSystemService from '../../services/storage/FileSystemService';
-import * as ContextManager from '../../services/storage/ContextManager';
+import { fileSystemService } from '../../services/storage/FileSystemService';
 
 // Mock the services
 vi.mock('../../services/storage/FileSystemService', () => ({
@@ -20,11 +19,10 @@ vi.mock('../../services/storage/FileSystemService', () => ({
   },
 }));
 
-describe('Dashboard', () => {
-  let mockFileSystemService: any;
+const mockFileSystemService = vi.mocked(fileSystemService);
 
+describe('Dashboard', () => {
   beforeEach(() => {
-    mockFileSystemService = (FileSystemService as any).fileSystemService;
     mockElectronAPI();
 
     // Reset all mocks
@@ -183,7 +181,7 @@ describe('Dashboard', () => {
       mockFileSystemService.exists.mockResolvedValue(true);
       mockFileSystemService.readJSON.mockResolvedValue(mockSubjectContext);
 
-      const { container } = renderWithRouter(<Dashboard userContext={mockUserContext} />);
+      renderWithRouter(<Dashboard userContext={mockUserContext} />);
 
       await waitFor(() => {
         expect(screen.getByText(mockSubjectContext.subjectName)).toBeInTheDocument();
