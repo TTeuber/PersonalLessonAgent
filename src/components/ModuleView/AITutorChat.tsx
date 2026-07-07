@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, Loader2, MessageSquare } from 'lucide-react';
 import type { HierarchicalContext } from '../../types/context';
 import { TutorAgent } from '../../services/agents/TutorAgent';
@@ -24,24 +24,7 @@ export function AITutorChat({ context, moduleContent }: AITutorChatProps) {
   const tutorAgent = useRef(new TutorAgent());
   const contextManager = useRef(new ContextManager(new FileSystemService()));
 
-  // Load chat history on mount
-  useEffect(() => {
-    loadChatHistory();
-  }, [context.subject?.subjectId, context.course?.courseId, context.module?.moduleId]);
-
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  // Save chat history whenever messages change
-  useEffect(() => {
-    if (messages.length > 0 && context.subject?.subjectId && context.course?.courseId && context.module?.moduleId) {
-      saveChatHistory();
-    }
-  }, [messages]);
-
-  const loadChatHistory = async () => {
+  const loadChatHistory = useCallback(async () => {
     if (!context.subject?.subjectId || !context.course?.courseId || !context.module?.moduleId) {
       return;
     }
@@ -56,9 +39,9 @@ export function AITutorChat({ context, moduleContent }: AITutorChatProps) {
     } catch (error) {
       console.error('Error loading chat history:', error);
     }
-  };
+  }, [context.subject?.subjectId, context.course?.courseId, context.module?.moduleId]);
 
-  const saveChatHistory = async () => {
+  const saveChatHistory = useCallback(async () => {
     if (!context.subject?.subjectId || !context.course?.courseId || !context.module?.moduleId) {
       return;
     }
@@ -73,7 +56,24 @@ export function AITutorChat({ context, moduleContent }: AITutorChatProps) {
     } catch (error) {
       console.error('Error saving chat history:', error);
     }
-  };
+  }, [context.subject?.subjectId, context.course?.courseId, context.module?.moduleId, messages]);
+
+  // Load chat history on mount
+  useEffect(() => {
+    loadChatHistory();
+  }, [loadChatHistory]);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Save chat history whenever messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      saveChatHistory();
+    }
+  }, [messages, saveChatHistory]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;

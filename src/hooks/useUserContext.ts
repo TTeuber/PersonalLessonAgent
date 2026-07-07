@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ContextManager } from '../services/storage/ContextManager';
 import { fileSystemService } from '../services/storage/FileSystemService';
 import type { UserContext } from '../types/context';
@@ -11,13 +11,9 @@ export function useUserContext() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const contextManager = new ContextManager(fileSystemService);
+  const contextManager = useMemo(() => new ContextManager(fileSystemService), []);
 
-  useEffect(() => {
-    loadUserContext();
-  }, []);
-
-  const loadUserContext = async () => {
+  const loadUserContext = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -28,7 +24,11 @@ export function useUserContext() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [contextManager]);
+
+  useEffect(() => {
+    loadUserContext();
+  }, [loadUserContext]);
 
   const saveUserContext = async (context: UserContext) => {
     try {

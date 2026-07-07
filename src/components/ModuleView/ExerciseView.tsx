@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronLeft, CheckCircle, MessageSquare, Code, ExternalLink, File, Folder, ChevronRight, ChevronDown } from 'lucide-react';
 import type { Exercise } from '../../types/module';
 import type { HierarchicalContext } from '../../types/context';
@@ -33,10 +33,6 @@ export function ExerciseView({ module, context, onComplete, onBack }: ExerciseVi
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    loadExerciseData();
-  }, [module.descriptionPath, module.projectPath]);
-
-  useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing || !containerRef.current) return;
 
@@ -67,26 +63,7 @@ export function ExerciseView({ module, context, onComplete, onBack }: ExerciseVi
     };
   }, [isResizing]);
 
-  const loadExerciseData = async () => {
-    try {
-      setLoading(true);
-      const fs = new FileSystemService();
-
-      // Load description
-      const desc = await fs.readFile(module.descriptionPath);
-      setDescription(desc);
-
-      // Load project file tree
-      await loadFileTree(module.projectPath);
-    } catch (error) {
-      console.error('Error loading exercise data:', error);
-      setDescription('# Error Loading Exercise\n\nFailed to load exercise content. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadFileTree = async (path: string) => {
+  const loadFileTree = useCallback(async (path: string) => {
     try {
       const fs = new FileSystemService();
       const entries = await fs.listDirectory(path);
@@ -105,7 +82,30 @@ export function ExerciseView({ module, context, onComplete, onBack }: ExerciseVi
     } catch (error) {
       console.error('Error loading file tree:', error);
     }
-  };
+  }, []);
+
+  const loadExerciseData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const fs = new FileSystemService();
+
+      // Load description
+      const desc = await fs.readFile(module.descriptionPath);
+      setDescription(desc);
+
+      // Load project file tree
+      await loadFileTree(module.projectPath);
+    } catch (error) {
+      console.error('Error loading exercise data:', error);
+      setDescription('# Error Loading Exercise\n\nFailed to load exercise content. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [module.descriptionPath, module.projectPath, loadFileTree]);
+
+  useEffect(() => {
+    loadExerciseData();
+  }, [loadExerciseData]);
 
   const toggleDirectory = async (node: FileNode) => {
     if (!node.isDirectory) return;

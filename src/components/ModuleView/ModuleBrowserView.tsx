@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronLeft, CheckCircle, MessageSquare, File, Folder, ChevronRight, ChevronDown, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import type { Module } from '../../types/module';
 import type { HierarchicalContext } from '../../types/context';
@@ -37,10 +37,6 @@ export function ModuleBrowserView({ module, context, onComplete, onBack }: Modul
   const [isResizingChat, setIsResizingChat] = useState(false);
   const [isResizingFileTree, setIsResizingFileTree] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    loadModuleFiles();
-  }, [module.id]);
 
   // Handle chat resize
   useEffect(() => {
@@ -102,46 +98,7 @@ export function ModuleBrowserView({ module, context, onComplete, onBack }: Modul
     };
   }, [isResizingFileTree]);
 
-  const loadModuleFiles = async () => {
-    try {
-      setLoading(true);
-      const fs = new FileSystemService();
-      const modulePath = getModulePath(
-        context.subject!.subjectId,
-        context.course!.courseId,
-        module.id
-      );
-
-      // Load file tree
-      const entries = await fs.listDirectory(modulePath);
-      const nodes: FileNode[] = [];
-
-      for (const entry of entries) {
-        nodes.push({
-          name: entry.name,
-          path: `${modulePath}/${entry.name}`,
-          isDirectory: entry.isDirectory,
-          expanded: false,
-        });
-      }
-
-      setFileTree(nodes);
-
-      // Auto-select first markdown file or first file
-      const firstMd = nodes.find(n => !n.isDirectory && n.name.endsWith('.md'));
-      const firstFile = firstMd || nodes.find(n => !n.isDirectory);
-
-      if (firstFile) {
-        await selectFile(firstFile);
-      }
-    } catch (error) {
-      console.error('Error loading module files:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const toggleDirectory = async (node: FileNode) => {
+  const toggleDirectory = useCallback(async (node: FileNode) => {
     if (!node.isDirectory) return;
 
     const updateTree = (nodes: FileNode[]): FileNode[] => {
@@ -180,16 +137,16 @@ export function ModuleBrowserView({ module, context, onComplete, onBack }: Modul
           });
         };
 
-        setFileTree(updateTreeWithChildren(fileTree));
+        setFileTree(prev => updateTreeWithChildren(prev));
       } catch (error) {
         console.error('Error loading directory:', error);
       }
     } else {
-      setFileTree(updateTree(fileTree));
+      setFileTree(prev => updateTree(prev));
     }
-  };
+  }, []);
 
-  const selectFile = async (node: FileNode) => {
+  const selectFile = useCallback(async (node: FileNode) => {
     if (node.isDirectory) {
       toggleDirectory(node);
       return;
@@ -228,7 +185,50 @@ export function ModuleBrowserView({ module, context, onComplete, onBack }: Modul
       setFileContent('Error loading file content.');
       setFileType('text');
     }
-  };
+  }, [toggleDirectory]);
+
+  const loadModuleFiles = useCallback(async () => {
+    try {
+      setLoading(true);
+      const fs = new FileSystemService();
+      const modulePath = getModulePath(
+        context.subject!.subjectId,
+        context.course!.courseId,
+        module.id
+      );
+
+      // Load file tree
+      const entries = await fs.listDirectory(modulePath);
+      const nodes: FileNode[] = [];
+
+      for (const entry of entries) {
+        nodes.push({
+          name: entry.name,
+          path: `${modulePath}/${entry.name}`,
+          isDirectory: entry.isDirectory,
+          expanded: false,
+        });
+      }
+
+      setFileTree(nodes);
+
+      // Auto-select first markdown file or first file
+      const firstMd = nodes.find(n => !n.isDirectory && n.name.endsWith('.md'));
+      const firstFile = firstMd || nodes.find(n => !n.isDirectory);
+
+      if (firstFile) {
+        await selectFile(firstFile);
+      }
+    } catch (error) {
+      console.error('Error loading module files:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [context.subject, context.course, module.id, selectFile]);
+
+  useEffect(() => {
+    loadModuleFiles();
+  }, [loadModuleFiles]);
 
   const handleMarkComplete = () => {
     if (confirm('Mark this module as complete?')) {

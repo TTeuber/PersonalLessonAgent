@@ -3,7 +3,7 @@
  * Displays course details and module list with content generation
  */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sparkles, AlertCircle } from 'lucide-react';
 import { Header } from '../Shared/Header';
@@ -46,14 +46,10 @@ export function CourseView() {
   const [generationStatus, setGenerationStatus] = useState<'generating' | 'complete' | 'error'>('generating');
   const [generationSteps, setGenerationSteps] = useState<GenerationStep[]>([]);
 
-  const fs = new FileSystemService();
-  const contextManager = new ContextManager(fs);
+  const fs = useMemo(() => new FileSystemService(), []);
+  const contextManager = useMemo(() => new ContextManager(fs), [fs]);
 
-  useEffect(() => {
-    loadCourseData();
-  }, [subjectId, courseId]);
-
-  const loadCourseData = async () => {
+  const loadCourseData = useCallback(async () => {
     if (!subjectId || !courseId) {
       setError('Missing subject or course ID');
       setLoading(false);
@@ -84,7 +80,11 @@ export function CourseView() {
       setError(err instanceof Error ? err.message : 'Failed to load course');
       setLoading(false);
     }
-  };
+  }, [subjectId, courseId, contextManager]);
+
+  useEffect(() => {
+    loadCourseData();
+  }, [loadCourseData]);
 
   const handleGenerateSingleModule = async (moduleId: string) => {
     if (!subjectId || !courseId || isGenerating) return;

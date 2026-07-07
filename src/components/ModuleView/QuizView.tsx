@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronLeft, CheckCircle, MessageSquare, ClipboardList, Check, X } from 'lucide-react';
 import type { Quiz, QuizQuestion } from '../../types/module';
 import type { HierarchicalContext } from '../../types/context';
@@ -22,10 +22,6 @@ export function QuizView({ module, context, onComplete, onBack }: QuizViewProps)
   const [chatWidth, setChatWidth] = useState(384); // Default 384px (w-96)
   const [isResizing, setIsResizing] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    loadQuizQuestions();
-  }, [module.questionsPath]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -58,7 +54,7 @@ export function QuizView({ module, context, onComplete, onBack }: QuizViewProps)
     };
   }, [isResizing]);
 
-  const loadQuizQuestions = async () => {
+  const loadQuizQuestions = useCallback(async () => {
     try {
       setLoading(true);
       const fs = new FileSystemService();
@@ -70,7 +66,11 @@ export function QuizView({ module, context, onComplete, onBack }: QuizViewProps)
     } finally {
       setLoading(false);
     }
-  };
+  }, [module.questionsPath]);
+
+  useEffect(() => {
+    loadQuizQuestions();
+  }, [loadQuizQuestions]);
 
   const handleAnswerChange = (questionIndex: number, answer: string) => {
     const newAnswers = new Map(answers);

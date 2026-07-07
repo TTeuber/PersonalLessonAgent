@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronLeft, CheckCircle, MessageSquare, BookOpen } from 'lucide-react';
 import type { Lesson } from '../../types/module';
 import type { HierarchicalContext } from '../../types/context';
@@ -21,9 +21,23 @@ export function LessonView({ module, context, onComplete, onBack }: LessonViewPr
   const [isResizing, setIsResizing] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const loadLessonContent = useCallback(async () => {
+    try {
+      setLoading(true);
+      const fs = new FileSystemService();
+      const lessonContent = await fs.readFile(module.contentPath);
+      setContent(lessonContent);
+    } catch (error) {
+      console.error('Error loading lesson content:', error);
+      setContent('# Error Loading Lesson\n\nFailed to load lesson content. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [module.contentPath]);
+
   useEffect(() => {
     loadLessonContent();
-  }, [module.contentPath]);
+  }, [loadLessonContent]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -55,20 +69,6 @@ export function LessonView({ module, context, onComplete, onBack }: LessonViewPr
       document.body.style.userSelect = '';
     };
   }, [isResizing]);
-
-  const loadLessonContent = async () => {
-    try {
-      setLoading(true);
-      const fs = new FileSystemService();
-      const lessonContent = await fs.readFile(module.contentPath);
-      setContent(lessonContent);
-    } catch (error) {
-      console.error('Error loading lesson content:', error);
-      setContent('# Error Loading Lesson\n\nFailed to load lesson content. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleMarkComplete = () => {
     if (confirm('Mark this lesson as complete?')) {

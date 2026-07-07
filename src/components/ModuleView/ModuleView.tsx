@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { ContextManager } from '../../services/storage/ContextManager';
@@ -20,11 +20,7 @@ export function ModuleView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadModuleData();
-  }, [subjectId, courseId, moduleId]);
-
-  const loadModuleData = async () => {
+  const loadModuleData = useCallback(async () => {
     if (!subjectId || !courseId || !moduleId) {
       setError('Missing required parameters');
       setLoading(false);
@@ -73,7 +69,11 @@ export function ModuleView() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [subjectId, courseId, moduleId]);
+
+  useEffect(() => {
+    loadModuleData();
+  }, [loadModuleData]);
 
   const handleComplete = async () => {
     if (!subjectId || !courseId || !moduleId || !module) return;

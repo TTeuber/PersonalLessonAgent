@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Book } from 'lucide-react';
 import { Header } from '../Shared/Header';
@@ -32,13 +32,9 @@ export function Dashboard({ userContext }: DashboardProps) {
   const [interviewAgent, setInterviewAgent] = useState<InterviewAgent | null>(null);
   const [interviewContext, setInterviewContext] = useState<Partial<HierarchicalContext> | null>(null);
 
-  const contextManager = new ContextManager(fileSystemService);
+  const contextManager = useMemo(() => new ContextManager(fileSystemService), []);
 
-  useEffect(() => {
-    loadSubjects();
-  }, []);
-
-  const loadSubjects = async () => {
+  const loadSubjects = useCallback(async () => {
     try {
       setLoading(true);
       const loadedSubjects = await contextManager.loadAllSubjects();
@@ -48,7 +44,11 @@ export function Dashboard({ userContext }: DashboardProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [contextManager]);
+
+  useEffect(() => {
+    loadSubjects();
+  }, [loadSubjects]);
 
   const handleNewSubject = async () => {
     try {
