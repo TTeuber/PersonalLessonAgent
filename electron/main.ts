@@ -1,6 +1,6 @@
-const { app, BrowserWindow } = require('electron');
-const { join } = require('path');
-const { registerAllHandlers } = require('./ipc/handlers');
+import { app, BrowserWindow } from 'electron';
+import { join } from 'path';
+import { registerAllHandlers } from './ipc/handlers';
 
 function createWindow() {
     const win = new BrowserWindow({
@@ -38,5 +38,3 @@ app.on('activate', () => {
         createWindow();
     }
 });
-
-export {};

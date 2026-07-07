@@ -1,6 +1,7 @@
-const { ipcMain, shell } = require('electron');
-const { exec } = require('child_process');
-const { promisify } = require('util');
+import { ipcMain, shell } from 'electron';
+import type { IpcMainInvokeEvent } from 'electron';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 
 const execAsync = promisify(exec);
 
@@ -23,8 +24,8 @@ const IDE_COMMANDS: Record<string, string> = {
 /**
  * Register IDE integration IPC handlers
  */
-function registerIDEHandlers(): void {
-  ipcMain.handle('ide:open', async (_event: any, projectPath: string, ide: string) => {
+export function registerIDEHandlers(): void {
+  ipcMain.handle('ide:open', async (_event: IpcMainInvokeEvent, projectPath: string, ide: string) => {
     const command = IDE_COMMANDS[ide];
 
     if (!command) {
@@ -51,7 +52,3 @@ function registerIDEHandlers(): void {
     }
   });
 }
-
-module.exports = { registerIDEHandlers };
-
-export {};
