@@ -29,28 +29,10 @@ shows "failing" red on the README if anything breaks, which is worse than no bad
 
 ## Nice to have
 
-### 4. Tighten the `any` types (31 eslint warnings)
-`@typescript-eslint/no-explicit-any` was downgraded to a warning in `eslint.config.mjs`
-because the hierarchical context types intentionally use `[key: string]: any` for
-AI-generated fields. Changing those index signatures to `unknown` (and fixing the
-fallout at usage sites) would let the rule go back to `error`. Mostly in
-`src/types/context.ts`, `SubjectView.tsx`, `ContentTools.ts`, and the electron mocks.
-
-### 5. Fix the react-hooks/exhaustive-deps warnings (~12)
-Each view component calls its `load*` function from a `useEffect` with an incomplete
-dependency array. Wrapping the loaders in `useCallback` (or moving them inside the
-effect) resolves these cleanly.
-
-### 6. Broaden test coverage
-Only Dashboard, ContextManager, and the OpenRouter client are tested (51 tests).
-The agents (`InterviewAgent`, `CourseDesignerAgent`, `ContentGeneratorAgent`) are the
-most interesting code in the repo and the best thing to show tested — the MSW
-infrastructure for mocking OpenRouter is already in place.
-
-### 7. Consider a packaged release
+### 4. Consider a packaged release
 `npm run electron:build` produces installers in `release/`. Attaching a macOS build to
 a GitHub Release makes the project feel shippable, even if nobody downloads it.
 
-### 8. Pin or feature the repo
+### 5. Pin or feature the repo
 Add it to your GitHub profile's pinned repos and your portfolio site's project list
 once the screenshots are in.
