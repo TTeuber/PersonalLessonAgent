@@ -5,7 +5,10 @@ import type { Tool } from '../api/openrouter';
 export class TutorAgent extends Agent {
   protected getSystemPrompt(context: HierarchicalContext): string {
     // Build a comprehensive system prompt with full context
-    const currentModuleContent = (context.module as any)?.content || '[Content not loaded]';
+    const moduleContent = context.module?.content;
+    const currentModuleContent = typeof moduleContent === 'string' && moduleContent
+      ? moduleContent
+      : '[Content not loaded]';
 
     return `You are a personalized AI tutor helping the learner understand the current module.
 

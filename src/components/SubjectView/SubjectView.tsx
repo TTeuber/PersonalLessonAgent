@@ -3,7 +3,7 @@
  * Displays all courses for a subject with ability to create new courses
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Plus, GraduationCap, AlertCircle } from 'lucide-react';
 import { Header } from '../Shared/Header';
@@ -22,6 +22,7 @@ import { InterviewStorage } from '../../services/storage/InterviewStorage';
 import type { Course } from '../../types/course';
 import type { SubjectContext, CourseContext, HierarchicalContext } from '../../types/context';
 import type { Module } from '../../types/module';
+import type { CourseOutline } from '../../types/agent';
 import type { SavedInterviewState } from '../../services/storage/InterviewStorage';
 
 type CreationStep = 'idle' | 'interview' | 'review' | 'saving';
@@ -46,70 +47,14 @@ export function SubjectView() {
 
   // Course design state
   const [courseName, setCourseName] = useState('');
-  const [courseOutline, setCourseOutline] = useState<any>(null);
+  const [courseOutline, setCourseOutline] = useState<CourseOutline | null>(null);
   const [courseContext, setCourseContext] = useState<Record<string, unknown> | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isModifying, setIsModifying] = useState(false);
 
-  const contextManager = new ContextManager(fileSystemService);
+  const contextManager = useMemo(() => new ContextManager(fileSystemService), []);
 
-  // Helper function to force create course from saved draft
-  const forceCreateFromDraft = async () => {
-    if (!subjectId) {
-      console.error('[ForceCreate] No subjectId available');
-      return;
-    }
-
-    const saved = InterviewStorage.load(subjectId);
-    if (!saved || saved.type !== 'course') {
-      console.error('[ForceCreate] No saved course interview found');
-      alert('No saved course interview found for this subject');
-      return;
-    }
-
-    if (!saved.courseName || !saved.courseContext) {
-      console.error('[ForceCreate] Saved state is missing courseName or courseContext');
-      alert('Saved interview data is incomplete');
-      return;
-    }
-
-    console.log('[ForceCreate] Found saved state:', saved);
-    console.log('[ForceCreate] Creating course:', saved.courseName);
-
-    try {
-      // Close any modal
-      setShowResumeModal(false);
-
-      // Set the course name state so handleApproveCourse can access it
-      setCourseName(saved.courseName);
-
-      // Directly call designCourse with saved data
-      await designCourse(saved.courseName, saved.courseContext);
-    } catch (error) {
-      console.error('[ForceCreate] Error:', error);
-      alert(`Error creating course: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  };
-
-  useEffect(() => {
-    if (subjectId) {
-      loadSubjectAndCourses();
-    }
-  }, [subjectId]);
-
-  // Expose forceCreateFromDraft to window for console access
-  useEffect(() => {
-    if (subjectId && typeof window !== 'undefined') {
-      (window as any).forceCreateCourse = forceCreateFromDraft;
-      console.log('[SubjectView] Force create function available: window.forceCreateCourse()');
-
-      return () => {
-        delete (window as any).forceCreateCourse;
-      };
-    }
-  }, [subjectId]);
-
-  const loadSubjectAndCourses = async () => {
+  const loadSubjectAndCourses = useCallback(async () => {
     if (!subjectId) return;
 
     try {
@@ -135,7 +80,13 @@ export function SubjectView() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [subjectId, contextManager]);
+
+  useEffect(() => {
+    if (subjectId) {
+      loadSubjectAndCourses();
+    }
+  }, [subjectId, loadSubjectAndCourses]);
 
   const handleNewCourse = async () => {
     if (!subjectId) return;
@@ -229,7 +180,7 @@ export function SubjectView() {
     }
   };
 
-  const designCourse = async (name: string, courseContext: Record<string, unknown>) => {
+  const designCourse = useCallback(async (name: string, courseContext: Record<string, unknown>) => {
     if (!subjectId) return;
 
     setIsGenerating(true);
@@ -292,10 +243,7 @@ export function SubjectView() {
       console.log('User message for designer:', userMessage);
 
       const designer = new CourseDesignerAgent();
-      const response = await designer.run(
-        userMessage,
-        context as any
-      );
+      const response = await designer.run(userMessage, context);
 
       console.log('Designer response:', response);
 
@@ -320,7 +268,57 @@ export function SubjectView() {
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [subjectId, contextManager]);
+
+  // Helper function to force create course from saved draft
+  const forceCreateFromDraft = useCallback(async () => {
+    if (!subjectId) {
+      console.error('[ForceCreate] No subjectId available');
+      return;
+    }
+
+    const saved = InterviewStorage.load(subjectId);
+    if (!saved || saved.type !== 'course') {
+      console.error('[ForceCreate] No saved course interview found');
+      alert('No saved course interview found for this subject');
+      return;
+    }
+
+    if (!saved.courseName || !saved.courseContext) {
+      console.error('[ForceCreate] Saved state is missing courseName or courseContext');
+      alert('Saved interview data is incomplete');
+      return;
+    }
+
+    console.log('[ForceCreate] Found saved state:', saved);
+    console.log('[ForceCreate] Creating course:', saved.courseName);
+
+    try {
+      // Close any modal
+      setShowResumeModal(false);
+
+      // Set the course name state so handleApproveCourse can access it
+      setCourseName(saved.courseName);
+
+      // Directly call designCourse with saved data
+      await designCourse(saved.courseName, saved.courseContext);
+    } catch (error) {
+      console.error('[ForceCreate] Error:', error);
+      alert(`Error creating course: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }, [subjectId, designCourse]);
+
+  // Expose forceCreateFromDraft to window for console access
+  useEffect(() => {
+    if (subjectId && typeof window !== 'undefined') {
+      window.forceCreateCourse = forceCreateFromDraft;
+      console.log('[SubjectView] Force create function available: window.forceCreateCourse()');
+
+      return () => {
+        delete window.forceCreateCourse;
+      };
+    }
+  }, [subjectId, forceCreateFromDraft]);
 
   const handleApproveCourse = async () => {
     console.log('[ApproveCourse] Starting approval process');
@@ -349,8 +347,10 @@ export function SubjectView() {
         courseName,
         courseId,
         createdAt: new Date().toISOString(),
-        goal: (baseContext as any).goal || '',
-        prerequisitesCovered: (baseContext as any).prerequisitesCovered || [],
+        goal: typeof baseContext.goal === 'string' ? baseContext.goal : '',
+        prerequisitesCovered: Array.isArray(baseContext.prerequisitesCovered)
+          ? (baseContext.prerequisitesCovered as string[])
+          : [],
         ...baseContext,
       };
 
@@ -358,17 +358,24 @@ export function SubjectView() {
       await contextManager.saveCourseContext(subjectId, courseId, courseContext);
 
       // Create modules from outline
-      const modules: Module[] = courseOutline.modules.map((m: any) => ({
-        id: `${m.type}-${String(m.order + 1).padStart(2, '0')}-${toKebabCase(m.title)}`,
-        type: m.type,
-        title: m.title,
-        description: m.description,
-        completed: false,
-        order: m.order,
-        ...(m.type === 'lesson' && { contentPath: '' }),
-        ...(m.type === 'exercise' && { descriptionPath: '', projectPath: '' }),
-        ...(m.type === 'quiz' && { questionsPath: '' }),
-      }));
+      const modules: Module[] = courseOutline.modules.map((m): Module => {
+        const base = {
+          id: `${m.type}-${String(m.order + 1).padStart(2, '0')}-${toKebabCase(m.title)}`,
+          title: m.title,
+          description: m.description,
+          completed: false,
+          order: m.order,
+        };
+
+        switch (m.type) {
+          case 'lesson':
+            return { ...base, type: 'lesson', contentPath: '' };
+          case 'exercise':
+            return { ...base, type: 'exercise', descriptionPath: '', projectPath: '' };
+          case 'quiz':
+            return { ...base, type: 'quiz', questionsPath: '' };
+        }
+      });
 
       // Save modules
       await contextManager.saveCourseModules(subjectId, courseId, modules);
@@ -424,7 +431,7 @@ export function SubjectView() {
       if (courseOutline) {
         userMessage += `**Current Course Outline:**\n`;
         userMessage += `The course currently has ${courseOutline.modules.length} modules:\n`;
-        courseOutline.modules.forEach((module: any, index: number) => {
+        courseOutline.modules.forEach((module, index) => {
           userMessage += `${index + 1}. [${module.type.toUpperCase()}] ${module.title}\n`;
           userMessage += `   ${module.description}\n\n`;
         });
@@ -457,10 +464,7 @@ export function SubjectView() {
       console.log('Modification request for designer:', userMessage);
 
       const designer = new CourseDesignerAgent();
-      const response = await designer.run(
-        userMessage,
-        context as any
-      );
+      const response = await designer.run(userMessage, context);
 
       console.log('Modified designer response:', response);
 

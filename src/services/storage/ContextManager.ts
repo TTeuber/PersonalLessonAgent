@@ -97,7 +97,7 @@ export class ContextManager {
    */
   async saveContext(
     level: 'user' | 'subject' | 'course' | 'module',
-    data: any,
+    data: UserContext | SubjectContext | CourseContext | ModuleContext,
     subjectId?: string,
     courseId?: string,
     moduleId?: string
@@ -215,7 +215,9 @@ export class ContextManager {
                 courseName: courseContext.courseName,
                 subjectId,
                 goal: courseContext.goal || '',
-                createdAt: courseContext.createdAt || new Date().toISOString(),
+                createdAt: typeof courseContext.createdAt === 'string'
+                  ? courseContext.createdAt
+                  : new Date().toISOString(),
                 moduleCount,
                 completedCount,
               });

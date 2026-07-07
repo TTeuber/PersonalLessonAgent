@@ -14,7 +14,7 @@ export interface SubjectContext {
   subjectId: string; // kebab-case version of name
   createdAt: string;
   // Flexible - AI determines relevant fields
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface CourseContext {
@@ -23,7 +23,7 @@ export interface CourseContext {
   goal: string;
   prerequisitesCovered: string[];
   // Flexible - AI determines relevant fields
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface ModuleContext {
@@ -32,7 +32,7 @@ export interface ModuleContext {
   title: string;
   completed: boolean;
   // Flexible - AI determines relevant fields
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface HierarchicalContext {

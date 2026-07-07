@@ -20,9 +20,7 @@ export default defineConfig([
       globals: globals.browser,
     },
     rules: {
-      // Hierarchical contexts are intentionally open-ended ([key: string]: any);
-      // tightening these types is tracked in PORTFOLIO_TODO.md
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',
         {

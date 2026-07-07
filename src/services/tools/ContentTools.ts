@@ -61,7 +61,7 @@ export async function generateModuleContent(
       type: module.type,
       title: module.title,
       completed: module.completed,
-      description: (module as any).description || '',
+      description: module.description || '',
       order: module.order,
     };
 
@@ -150,8 +150,8 @@ export async function generateAllCourseContent(
  * Create generation prompt based on module type
  */
 function createGenerationPrompt(module: Module): string {
-  const moduleInfo = (module as any).description
-    ? `\n\nModule Description: ${(module as any).description}`
+  const moduleInfo = module.description
+    ? `\n\nModule Description: ${module.description}`
     : '';
 
   switch (module.type) {

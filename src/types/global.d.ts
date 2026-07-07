@@ -25,6 +25,8 @@ export interface ElectronAPI {
 declare global {
   interface Window {
     electron: ElectronAPI;
+    /** Debug hook exposed by SubjectView for creating a course from a saved interview draft */
+    forceCreateCourse?: () => Promise<void>;
   }
 
   interface ImportMetaEnv {

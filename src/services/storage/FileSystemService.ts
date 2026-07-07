@@ -36,7 +36,7 @@ export class FileSystemService {
    * @param path - Relative path from data directory
    * @param data - Object to serialize and write
    */
-  async writeJSON(path: string, data: any): Promise<void> {
+  async writeJSON(path: string, data: unknown): Promise<void> {
     const content = JSON.stringify(data, null, 2);
     return this.writeFile(path, content);
   }

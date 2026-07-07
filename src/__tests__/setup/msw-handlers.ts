@@ -3,15 +3,24 @@ import { http, HttpResponse } from 'msw';
 // OpenRouter API base URL
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1';
 
+interface ChatCompletionRequestBody {
+  tools?: Array<{
+    type: 'function';
+    function: { name: string };
+  }>;
+}
+
 export const handlers = [
   // Mock OpenRouter chat completions endpoint
   http.post(`${OPENROUTER_API_URL}/chat/completions`, async ({ request }) => {
-    const body = await request.json() as any;
+    const body = await request.json() as ChatCompletionRequestBody;
 
     // Check if the request includes tools
     const hasTools = body.tools && body.tools.length > 0;
 
-    if (hasTools) {
+    if (hasTools && body.tools) {
+      const toolName = body.tools[0].function.name;
+
       // Mock tool use response
       return HttpResponse.json({
         id: 'test-response-id',
@@ -24,7 +33,7 @@ export const handlers = [
                 {
                   type: 'tool_use',
                   id: 'test-tool-call-id',
-                  name: body.tools[0].name,
+                  name: toolName,
                   input: { test: 'data' },
                 },
               ],
@@ -33,7 +42,7 @@ export const handlers = [
                   id: 'test-tool-call-id',
                   type: 'function',
                   function: {
-                    name: body.tools[0].name,
+                    name: toolName,
                     arguments: JSON.stringify({ test: 'data' }),
                   },
                 },
