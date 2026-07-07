@@ -26,11 +26,6 @@ beforeAll(() => {
   });
 });
 
-// Mock environment variables
-vi.mock('import.meta.env', () => ({
-  VITE_OPENROUTER_API_KEY: 'test-api-key',
-}));
-
 // Setup MSW
 beforeAll(() => {
   // MSW handlers will be initialized in individual test files

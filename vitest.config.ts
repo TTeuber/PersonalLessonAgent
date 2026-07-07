@@ -8,6 +8,11 @@ export default mergeConfig(
       globals: true,
       environment: 'happy-dom',
       setupFiles: ['./vitest.setup.ts'],
+      // Tests never call the real API (MSW intercepts fetch), but the
+      // OpenRouter client requires a key to be present
+      env: {
+        VITE_OPENROUTER_API_KEY: 'test-api-key',
+      },
       include: ['src/**/*.{test,spec}.{ts,tsx}'],
       exclude: ['node_modules', 'dist', 'dist-electron', 'release'],
       coverage: {
