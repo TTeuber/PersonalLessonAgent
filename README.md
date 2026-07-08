@@ -5,11 +5,19 @@
 
 > An AI-powered desktop learning platform that designs personalized courses, generates all educational content, and tutors you side-by-side as you learn.
 
-<!-- TODO: Add a demo GIF + screenshots here (see PORTFOLIO_TODO.md)
-## Demo
-![Course creation interview](Docs/screenshots/interview.png)
-![Module browser with AI tutor](Docs/screenshots/module-browser.png)
--->
+## Screenshots
+
+**Learning in the module browser** — file tree, AI-generated lesson content, and the context-aware AI tutor side by side:
+
+![Module browser with AI tutor](docs/screenshots/module-browser.png)
+
+**Creating a subject** — a guided interview that captures your background and goals so the AI can personalize everything downstream:
+
+![Subject creation interview](docs/screenshots/interview.png)
+
+**A generated course** — AI-designed module sequence with one-click content generation for lessons, exercises, and quizzes:
+
+![Course view with generated modules](docs/screenshots/course-view.png)
 
 
 Built with **React 19**, **TypeScript**, and **Electron**, the Personal Lesson Agent turns a short interview into a complete, structured course — lessons, hands-on exercises, and quizzes — all authored by AI that understands your background, your tools, and your goals. A context-aware tutor sits beside every module to answer questions in real time.
